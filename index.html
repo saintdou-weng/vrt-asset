@@ -1311,7 +1311,7 @@ function renderCosting(){
 }
 
 /* ================= Sync center ================= */
-function syncCfg(){DB.sync=DB.sync||{time:'15:30',days:'MON-SAT',gas:''};return DB.sync}
+function syncCfg(){DB.sync=DB.sync||{time:'15:30',days:'MON-SAT',gas:''};if(!DB.sync.gas)DB.sync.gas='https://script.google.com/macros/s/AKfycbzyAaaKlMGdot9YtYAlBp-dktm2xRr_aHbOcQ-TNfouERMjuq4iCfRhCY0_3LsPa2mL/exec';return DB.sync}
 function nextSyncText(){const c=syncCfg();const [hh,mm]=c.time.split(':').map(Number);let d=new Date();for(let i=0;i<15;i++){const x=new Date(d.getFullYear(),d.getMonth(),d.getDate()+i,hh,mm);if(x<=new Date())continue;if(!isWorkDay(new Date(x.getFullYear(),x.getMonth(),x.getDate())))continue;return ymd(x)+' '+c.time+' ('+WD()[(x.getDay()+6)%7]+')'}return '—'}
 function renderSync(){
  const k='sync', st=S(k), R=rangeOf(st); const c=syncCfg();
