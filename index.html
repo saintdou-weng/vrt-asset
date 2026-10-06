@@ -84,6 +84,7 @@ a{color:var(--accent)}
 .ph .acts{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
 .url-chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:11.5px;color:var(--muted);background:var(--surface-2);border:1px solid var(--line-2);padding:2px 8px;border-radius:5px;margin-top:6px}
 .solo .rail{display:none}.solo .app{grid-template-columns:minmax(0,1fr)}
+.prod-links{margin-top:10px;display:flex;flex-direction:column;gap:5px}.prod-links a{display:block;border:1px solid var(--line-2,#d9dee8);border-radius:8px;padding:6px 8px;font-size:12px;text-decoration:none;color:inherit;background:rgba(255,255,255,.6)}.prod-links a:hover{border-color:var(--accent,#2563eb)}
 .solo-bar{display:none;align-items:center;gap:8px;font-size:12.5px}
 .solo .solo-bar{display:flex}
 
@@ -326,6 +327,11 @@ button.kpi{font:inherit;color:inherit;border:1px solid var(--line)}
     <div class="rail-foot">
       <div class="ro-pill">● <span data-i="legacy_ro"></span></div>
       <div style="margin-top:8px" data-i="proto_note"></div>
+      <!-- v0.4.1 (2026-10-05): PROD ↔ ERP 互相入口。PROD 入口頁與每頁右上角也有「VRT ERP」回來。 -->
+      <div class="prod-links" id="prodLinks">
+        <a href="https://saintdou-weng.github.io/vrt-prod/portal_v2.html" target="_blank" rel="noopener">🏭 <span data-i="prod_entry"></span> ↗</a>
+        <a href="https://saintdou-weng.github.io/vrt-prod/vrt_erp_link_v1.html" target="_blank" rel="noopener">🔗 <span data-i="erp_link_prod"></span> ↗</a>
+      </div>
     </div>
   </aside>
   <div class="main">
@@ -381,8 +387,8 @@ const T={
  compare:['比對中心','Compare Center','មជ្ឈមណ្ឌលប្រៀបធៀប'], exceptions:['異常中心','Exceptions','ករណីមិនប្រក្រតី'], reports:['報告','Reports','របាយការណ៍'],
  telegram:['Telegram','Telegram','Telegram'], audit:['稽核 / 回收','Audit & Trash','សវនកម្ម / ធុងសំរាម'], settings:['設定','Settings','ការកំណត់'],
  legacy_ro:['Legacy ERP 唯讀','Legacy ERP read-only','Legacy ERP អានតែប៉ុណ្ណោះ'],
- proto_note:['原型 v0.4 · 示範資料，未連線 clothes.exe','Prototype v0.4 · demo data, not connected to clothes.exe','គំរូ v0.4 · ទិន្នន័យសាកល្បង មិនភ្ជាប់ clothes.exe'],
- back_portal:['回總平台','Back to portal','ត្រឡប់ទៅវិបផតថល'], search_ph:['搜尋 ERP Order、自編單號、PO、款式、料品、出貨單…','Search order, self key, PO, style, material, shipment…','ស្វែងរក Order, PO, ម៉ូដ, សម្ភារៈ…'],
+ proto_note:['原型 v0.4.1 · 示範資料，未連線 clothes.exe','Prototype v0.4.1 · demo data, not connected to clothes.exe','គំរូ v0.4.1 · ទិន្នន័យសាកល្បង មិនភ្ជាប់ clothes.exe'],
+ back_portal:['回總平台','Back to portal','ត្រឡប់ទៅវិបផតថល'], prod_entry:['VRT Prod 生產系統','VRT Prod production','ប្រព័ន្ធផលិតកម្ម VRT Prod'], erp_link_prod:['ERP 對照中心（在 VRT Prod）','ERP link centre (in VRT Prod)','មជ្ឈមណ្ឌលផ្គូផ្គង ERP (ក្នុង VRT Prod)'], search_ph:['搜尋 ERP Order、自編單號、PO、款式、料品、出貨單…','Search order, self key, PO, style, material, shipment…','ស្វែងរក Order, PO, ម៉ូដ, សម្ភារៈ…'],
  user:['使用者','User','អ្នកប្រើ'], password:['密碼','Password','ពាក្យសម្ងាត់'], trust:['信任此裝置（下次免登入）','Trust this device (skip login next time)','ទុកចិត្តឧបករណ៍នេះ'],
  login:['登入','Sign in','ចូល'], login_sub:['雲端管理層 · Legacy ERP 唯讀整合','Cloud management layer · read-only legacy integration','ស្រទាប់គ្រប់គ្រងលើពពក'],
  login_note:['原型：任何帳密都可登入。正式版由 Google Apps Script 後端驗證；密碼與 Token 不寫在 HTML / JS / Git。','Prototype: any credentials work. Production authentication is handled by the Google Apps Script backend; passwords and tokens never live in HTML / JS / Git.','គំរូ៖ ចូលបានដោយគណនីណាក៏បាន។'],
@@ -1229,7 +1235,7 @@ function renderProduction(){
  const byL={}; pr.forEach(x=>{const g=byL[x.line]=byL[x.line]||{line:x.line,days:new Set(),ops:0,cut:0,sewn:0,packed:0,std:0,avail:0};g.days.add(x.ds);g.ops+=x.ops;g.cut+=x.cut;g.sewn+=x.sewn;g.packed+=x.packed;g.std+=x.std;g.avail+=x.avail});
  const lines=Object.values(byL).sort((a,b)=>+a.line.slice(5)-+b.line.slice(5)); const A=sum(pr,'avail'),Sd=sum(pr,'std');
  let h=pageHead(k,`<button class="btn sm" onclick="sendSummary('production')">${esc(t('send_tg'))}</button>`)+pnav(k,{views:true});
- h+=`<div class="note info" style="margin-bottom:12px">${tt('現有 VRT Prod 保持獨立運作；此頁只顯示、串接、比對（唯讀）。','VRT Prod keeps running on its own; this page only displays, links and compares (read-only).')} <a href="https://saintdou-weng.github.io/vrt-prod/" target="_blank" rel="noopener">VRT Prod ↗</a></div>`;
+ h+=`<div class="note info" style="margin-bottom:12px">${tt('現有 VRT Prod 保持獨立運作；此頁只顯示、串接、比對（唯讀）。','VRT Prod keeps running on its own; this page only displays, links and compares (read-only).')} <a href="https://saintdou-weng.github.io/vrt-prod/portal_v2.html" target="_blank" rel="noopener">VRT Prod ↗</a> · <a href="https://saintdou-weng.github.io/vrt-prod/vrt_erp_link_v1.html" target="_blank" rel="noopener">${esc(t('erp_link_prod'))} ↗</a></div>`;
  h+=`<div class="kpis">${kpi(t('cut_qty'),fmt(sum(pr,'cut')),t('pcs'))}${kpi(t('sewn'),fmt(sum(pr,'sewn')),t('pcs'))}${kpi(t('packed'),fmt(sum(pr,'packed')),t('pcs'))}${kpi(tt('加權效率','Weighted eff.'),A?fmt(Sd/A*100,1)+'%':'—','',tt('Σ標準分 ÷ Σ投入分','Σ std min ÷ Σ avail min'))}${kpi(tt('工作天','Working days'),fmt(new Set(pr.map(x=>x.ds)).size),'',tt('週日與廠休不計','Sundays & factory holidays excluded'))}</div>`;
  h+=lines.length?`<div class="tbl-wrap mt"><table class="t cards"><thead><tr><th>${esc(t('line'))}</th><th class="r">${tt('天數','Days')}</th><th class="r">${tt('平均人數','Avg operators')}</th><th class="r">${esc(t('cut_qty'))}</th><th class="r">${esc(t('sewn'))}</th><th class="r">${esc(t('packed'))}</th><th class="r">${tt('標準分','Std min')}</th><th class="r">${tt('投入分','Avail min')}</th><th class="r">${esc(t('eff'))}</th></tr></thead><tbody>
  ${lines.map(g=>`<tr><td class="lead" data-l="">${esc(g.line)}</td><td class="r" data-l="${tt('天數','Days')}">${g.days.size}</td><td class="r" data-l="${tt('平均人數','Avg ops')}">${fmt(g.ops/Math.max(1,g.days.size),0)}</td><td class="r" data-l="${esc(t('cut_qty'))}">${fmt(g.cut)}</td><td class="r" data-l="${esc(t('sewn'))}">${fmt(g.sewn)}</td><td class="r" data-l="${esc(t('packed'))}">${fmt(g.packed)}</td><td class="r" data-l="${tt('標準分','Std min')}">${fmt(g.std)}</td><td class="r" data-l="${tt('投入分','Avail min')}">${fmt(g.avail)}</td><td class="r" data-l="${esc(t('eff'))}">${stChip(g.std/g.avail<.5?'warn':'good',fmt(g.std/g.avail*100,1)+'%')}</td></tr>`).join('')}</tbody></table></div>`:`<div class="note mt">${esc(t('no_data'))}</div>`;
@@ -1356,6 +1362,7 @@ function renderCompare(){
  <div class="field"><label>${tt('比對鍵','Match key')}</label><span class="mono small" style="padding:7px 0">${esc(C.key)}</span></div>
  <div class="field"><label for="cmpTol">${tt('容許差','Tolerance')}</label><input class="inp" id="cmpTol" type="number" min="0" style="width:100px" value="${st.tol}" onchange="S('compare').tol=+this.value;rerender()"></div>
  <div class="field"><label>${esc(t('source'))}</label><div style="display:flex;gap:4px;flex-wrap:wrap;padding-top:5px">${C.srcs.map((x,i)=>srcBadge(x)+' <span class="small muted">'+esc(labels[i])+'</span>').join(' vs ')}</div></div></div>`;
+ h+=`<div class="note info" style="margin:0 0 12px">${tt('真實 PROD 資料的對照（ERP 匯出檔 ↔ 排產／車縫／出貨排程、日報草稿）在 VRT Prod 的「ERP 對照中心」；本頁示範資料只示意流程。','Real PROD comparisons (ERP export files vs production plan / sewing / shipping schedule, daily report draft) live in the VRT Prod "ERP link centre"; the demo rows here only illustrate the flow.')} <a href="https://saintdou-weng.github.io/vrt-prod/vrt_erp_link_v1.html" target="_blank" rel="noopener">${esc(t('erp_link_prod'))} ↗</a> · <a href="https://saintdou-weng.github.io/vrt-prod/portal_v2.html" target="_blank" rel="noopener">VRT Prod ↗</a></div>`;
  h+=pnav(k,{all:!C.snap,snapshot:!!C.snap});
  h+=`<div class="kpis">${Object.entries(SL).map(([x,[c,l]])=>`<button class="kpi ${x==='qty'&&cnt(x)?'crit':x==='missing'&&cnt(x)?'warn':''}" style="text-align:left;cursor:pointer;${st.f===x?'outline:2px solid var(--accent)':''}" onclick="S('compare').f=S('compare').f==='${x}'?'all':'${x}';rerender()"><span class="l">${esc(l)}</span><span class="v num">${fmt(cnt(x))}</span></button>`).join('')}</div>`;
  h+=show.length?`<div class="tbl-wrap mt"><table class="t cards"><thead><tr><th>Key</th><th>${tt('說明','Detail')}</th>${labels.map(l=>`<th class="r">${esc(l)}</th>`).join('')}<th class="r">${esc(t('difference'))}</th><th>${esc(t('status'))}</th></tr></thead><tbody>
