@@ -302,6 +302,33 @@ body{background:#F0F2F5!important;color:#111827!important}
 .t tr.sel td{background:var(--accent-soft)}
 button.kpi{font:inherit;color:inherit;border:1px solid var(--line)}
 @media (max-width:860px){.pn-view{margin-left:0}.pnav{padding:10px}.pn-sel{width:100%}.pn-sel select.inp{flex:1}}
+
+/* ---------- v0.5 real data / list ---------- */
+.mode-badge{font-size:12px;font-weight:700;padding:5px 10px;border-radius:99px;text-decoration:none;white-space:nowrap}
+.mode-badge.real{background:#DCFCE7;color:#166534;border:1px solid #86EFAC}
+.mode-badge.demo{background:repeating-linear-gradient(45deg,#FEF3C7,#FEF3C7 6px,#FDE68A 6px,#FDE68A 12px);color:#92400E;border:1px solid #F59E0B}
+.panel.empty{border-style:dashed;text-align:left}
+.panel.empty h2{color:var(--ink-2)}
+.list-panel h2{display:flex;align-items:center;gap:8px;font-size:15px}
+.bar-mark{display:inline-block;width:3px;height:14px;background:#F59E0B;border-radius:2px}
+table.t.list th{background:#F3F5F9;color:var(--ink-2);font-size:12px}
+table.t.list td{padding:10px 12px;border-bottom:1px solid var(--line-2)}
+table.t.list td.per{color:#D97706;font-weight:700;font-family:var(--f-mono);white-space:nowrap}
+table.t.list td.pm{color:#1D4ED8;font-weight:700}
+table.t.list .pill{display:inline-block;padding:1px 8px;border-radius:5px;background:#ECFDF5;color:#047857;font-weight:600;font-size:12px}
+table.t.list tr.sel td{background:#FFF7ED}
+.ychips{display:flex;flex-wrap:wrap;gap:3px}
+.ychip{font-family:var(--f-mono);font-size:10.5px;padding:1px 5px;border-radius:4px;background:#F1F5F9;color:#94A3B8;border:1px solid #E2E8F0}
+.ychip.on{background:#DCFCE7;color:#166534;border-color:#86EFAC;font-weight:700}
+@media (max-width:860px){.mode-badge{order:4}table.t.list{min-width:560px}}
+
+.cloud-badge{font-size:12px;font-weight:600;padding:5px 10px;border-radius:99px;text-decoration:none;white-space:nowrap;border:1px solid #CBD5E1;background:#F8FAFC;color:#334155}
+.cloud-badge.ok{background:#EFF6FF;color:#1D4ED8;border-color:#93C5FD}
+.cloud-badge.busy{background:#FFFBEB;color:#92400E;border-color:#FCD34D}
+.cloud-badge.err{background:#FEF2F2;color:#B91C1C;border-color:#FCA5A5}
+.cloud-badge.off{background:#F1F5F9;color:#64748B}
+.panel.cloud-ask{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;border-color:#93C5FD;background:#EFF6FF}
+@media (max-width:860px){.cloud-badge{order:4;max-width:46vw;overflow:hidden;text-overflow:ellipsis}}
 </style>
 </head><body>
 
@@ -343,6 +370,8 @@ button.kpi{font:inherit;color:inherit;border:1px solid var(--line)}
         <input id="gsearch" type="search" autocomplete="off">
         <div class="sres" id="sres" hidden></div>
       </div>
+      <a href="#settings" id="cloudBadge" class="cloud-badge" hidden></a>
+      <a href="#settings" id="modeBadge" class="mode-badge"></a>
       <div class="lang" id="langSw"><button data-l="0">中</button><button data-l="1">EN</button><button data-l="2">ខ្មែរ</button></div>
       <button class="icon-btn" id="themeBtn" aria-label="Theme"><svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button>
       <div class="user-chip"><div class="avatar">PW</div><span class="nm">Paul Weng · Admin</span></div>
@@ -355,7 +384,7 @@ button.kpi{font:inherit;color:inherit;border:1px solid var(--line)}
 <div id="modal" class="modal" hidden></div>
 <div id="toast" class="toast" hidden></div>
 <div id="tip" class="tip" hidden></div>
-<input type="file" id="fileIn" accept=".xlsx,.xls,.csv,.txt" hidden>
+<input type="file" id="fileIn" accept=".xlsx,.xls,.XLS,.csv,.txt" multiple hidden>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 
@@ -387,7 +416,8 @@ const T={
  compare:['比對中心','Compare Center','មជ្ឈមណ្ឌលប្រៀបធៀប'], exceptions:['異常中心','Exceptions','ករណីមិនប្រក្រតី'], reports:['報告','Reports','របាយការណ៍'],
  telegram:['Telegram','Telegram','Telegram'], audit:['稽核 / 回收','Audit & Trash','សវនកម្ម / ធុងសំរាម'], settings:['設定','Settings','ការកំណត់'],
  legacy_ro:['Legacy ERP 唯讀','Legacy ERP read-only','Legacy ERP អានតែប៉ុណ្ណោះ'],
- proto_note:['原型 v0.4.1 · 示範資料，未連線 clothes.exe','Prototype v0.4.1 · demo data, not connected to clothes.exe','គំរូ v0.4.1 · ទិន្នន័យសាកល្បង មិនភ្ជាប់ clothes.exe'],
+ proto_note:['v0.5.1 · 真實資料來自 ERP 匯出檔，不連線 clothes.exe','v0.5 · real data from ERP export files; no link to clothes.exe','v0.5 · ទិន្នន័យពិតពីឯកសារ ERP'],
+ order_year:['年份','Year','ឆ្នាំ'], size:['尺寸','Size','ទំហំ'], color_name:['顏色名稱','Colour name','ឈ្មោះពណ៌'],
  back_portal:['回總平台','Back to portal','ត្រឡប់ទៅវិបផតថល'], prod_entry:['VRT Prod 生產系統','VRT Prod production','ប្រព័ន្ធផលិតកម្ម VRT Prod'], erp_link_prod:['ERP 對照中心（在 VRT Prod）','ERP link centre (in VRT Prod)','មជ្ឈមណ្ឌលផ្គូផ្គង ERP (ក្នុង VRT Prod)'], search_ph:['搜尋 ERP Order、自編單號、PO、款式、料品、出貨單…','Search order, self key, PO, style, material, shipment…','ស្វែងរក Order, PO, ម៉ូដ, សម្ភារៈ…'],
  user:['使用者','User','អ្នកប្រើ'], password:['密碼','Password','ពាក្យសម្ងាត់'], trust:['信任此裝置（下次免登入）','Trust this device (skip login next time)','ទុកចិត្តឧបករណ៍នេះ'],
  login:['登入','Sign in','ចូល'], login_sub:['雲端管理層 · Legacy ERP 唯讀整合','Cloud management layer · read-only legacy integration','ស្រទាប់គ្រប់គ្រងលើពពក'],
@@ -459,6 +489,7 @@ const SRC={LEGACY_ERP:['ERP','--s-erp'],VRT_PROD:['PROD','--s-prod'],ACCOUNT_FLO
 const srcBadge=s=>{const x=SRC[s]||[s,'--muted'];return `<span class="src" title="${esc(s)}"><i style="background:var(${x[1]})"></i>${x[0]}</span>`};
 
 const CUSTS=['BEREN','ARAMAR','ADI','ALSCO'];
+const custList=rows=>isDemo()?CUSTS:[...new Set((rows||[]).map(r=>r.cust).filter(Boolean))].sort().slice(0,60);
 const STYLES=[
  {id:'BIB-APRON-BK',smv:9.17,price:2.85,cust:'ARAMAR',fab:0},{id:'BIB-APRON-NV',smv:9.17,price:2.85,cust:'ALSCO',fab:0},
  {id:'WAIST-APRON-3P',smv:6.40,price:2.10,cust:'BEREN',fab:0},{id:'SL-B4WH-70X14',smv:3.85,price:0.62,cust:'ARAMAR',fab:2},
@@ -485,8 +516,8 @@ const COLORS=[['001','BLACK'],['002','NAVY'],['003','WHITE'],['004','KHAKI'],['0
 
 /* ---------- deterministic helpers (demo history 3 years) ---------- */
 function hsh(s){let h=2166136261;s=String(s);for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return ((h>>>0)%100000)/100000}
-const DATA_Y0=TODAY.getFullYear()-2;                 // demo history starts Jan 1, two years back
-const DATA_START=new Date(DATA_Y0,0,1);
+let DATA_Y0=TODAY.getFullYear()-2;                   // demo: two years back; real: earliest ERP year (updateDataRange)
+let DATA_START=new Date(DATA_Y0,0,1);
 const monthKey=d=>d.getFullYear()+'-'+pad(d.getMonth()+1);
 function holidaySet(){const s=new Set();((typeof DB!=='undefined'&&DB&&DB.holidays)||[]).forEach(h=>{if(String(h.closed||'YES').toUpperCase()!=='NO')s.add(h.date)});return s}
 let HOL=null;
@@ -501,7 +532,7 @@ function prodDay(d,L){
  const r={ds,line:'Line '+L,ops,avail,std,sewn,cut:Math.round(sewn*(0.95+0.12*hsh('c'+key))),packed:Math.round(sewn*(0.9+0.12*hsh('p'+key)))};
  PROD_CACHE.set(key,r); return r;
 }
-function prodRange(R){const out=[];const end=R.to>TODAY?TODAY:R.to;let d=new Date(Math.max(R.from,DATA_START));d.setHours(0,0,0,0);
+function prodRange(R){if(!isDemo())return [];const out=[];const end=R.to>TODAY?TODAY:R.to;let d=new Date(Math.max(R.from,DATA_START));d.setHours(0,0,0,0);
  for(;d<=end;d=addD(d,1)){if(!isWorkDay(d))continue;for(let L=1;L<=12;L++)out.push(prodDay(d,L))}return out}
 
 function genData(){
@@ -603,11 +634,341 @@ function genData(){
  D.importlog.push({batch:'SEED',time:synced,file:'W_COD700 / W_CPU795 / W_CBL300 / SMV_master_1845 / W_COD550',dataset:'Seed',rows:45932+82291+50811+1845+78617,n:0,u:0,d:0,e:0,user:'PSJERP Bridge'});
  return D;
 }
-const STORE_KEY='psjerp_proto_v4';
-let DB=LS.get(STORE_KEY,null);
-if(!DB||!DB.orders||DB._v!==4){DB=genData();DB._v=4;try{localStorage.setItem(STORE_KEY,JSON.stringify(DB))}catch(e){}}
-let persistT; const persist=()=>{clearTimeout(persistT);persistT=setTimeout(()=>{HOL=null;LS.set(STORE_KEY,DB)},120)};
-try{localStorage.removeItem('vrt_oneerp_proto_v1')}catch(e){}
+
+/* =================== v0.5 · real ERP data layer ===================
+   - Mode "real" (default): only data imported from ERP report files. No invented numbers.
+   - Mode "demo": the old generated sample data, clearly badged.
+   - Storage: IndexedDB (large ERP history does not fit in localStorage). */
+const IDB={_db:null,
+ open(){return new Promise(res=>{try{const rq=indexedDB.open('psjerp',1);rq.onupgradeneeded=()=>{try{rq.result.createObjectStore('kv')}catch(e){}};rq.onsuccess=()=>{this._db=rq.result;res(true)};rq.onerror=()=>res(false);rq.onblocked=()=>res(false)}catch(e){res(false)}})},
+ get(k){return new Promise(res=>{if(!this._db)return res(null);try{const r=this._db.transaction('kv').objectStore('kv').get(k);r.onsuccess=()=>res(r.result||null);r.onerror=()=>res(null)}catch(e){res(null)}})},
+ set(k,v){return new Promise(res=>{if(!this._db)return res(false);try{const tx=this._db.transaction('kv','readwrite');tx.objectStore('kv').put(v,k);tx.oncomplete=()=>res(true);tx.onerror=()=>res(false);tx.onabort=()=>res(false)}catch(e){console.error(e);res(false)}})}};
+let MODE=LS.get('psjerp_mode','real'); if(MODE!=='demo')MODE='real';
+function emptyDB(){return {_v:5,_mode:'real',orders:[],bom:[],purchase:[],receiving:[],fabric:[],accessories:[],shipping:[],production:[],fg:[],factorycost:[],accwip:[],
+ importlog:[],audit:[],trash:[],cmpres:[],syncruns:[],tglog:[],holidays:[],erpfiles:[],fabsnaps:{},accsnaps:{},asof:{},ordidx:{},smv:[]}}
+let DB=emptyDB();
+const dbKey=()=>MODE==='demo'?'db_demo_v5':'db_real_v5';
+let SAVE_OK=true;
+async function loadDB(){
+ let d=await IDB.get(dbKey());
+ if(!d){d=MODE==='demo'?Object.assign(emptyDB(),genData(),{_mode:'demo',_v:5}):emptyDB();}
+ const base=emptyDB(); Object.keys(base).forEach(k=>{if(d[k]==null)d[k]=base[k]});
+ d._mode=MODE; DB=d; HOL=null; PROD_CACHE.clear(); updateDataRange();
+ if(!IDB._db)SAVE_OK=false;
+ try{localStorage.removeItem('psjerp_proto_v4');localStorage.removeItem('vrt_oneerp_proto_v1')}catch(e){}
+}
+let persistT; function persist(){clearTimeout(persistT);persistT=setTimeout(async()=>{HOL=null;const ok=await IDB.set(dbKey(),DB);if(!ok&&SAVE_OK){SAVE_OK=false;toast(tt('瀏覽器無法儲存資料（可能是無痕模式），關閉後會遺失','This browser cannot save data (private mode?) — it will be lost on close'))}},400)}
+async function setMode(m){if(m===MODE)return;await IDB.set(dbKey(),DB);MODE=m;LS.set('psjerp_mode',m);await loadDB();Object.keys(ST).forEach(k=>delete ST[k]);IMP=null;IMPQ=[];toast(m==='demo'?tt('已切到示範資料','Switched to demo data'):tt('已切到真實資料','Switched to real data'));rerender();if(m==='real')setTimeout(()=>cloudSync(false),300)}
+const isDemo=()=>DB&&DB._mode==='demo';
+
+/* data range (drives year dropdowns / arrows) */
+function updateDataRange(){
+ if(isDemo()){DATA_Y0=TODAY.getFullYear()-2}
+ else{let y=TODAY.getFullYear();const see=s=>{if(!s)return;const n=+String(s).slice(0,4);if(n>1990&&n<y)y=n};
+  DB.orders.forEach(o=>{see(o.order_date);see(o.order_year)});DB.fg.forEach(g=>see(g.fg_date));DB.bom.forEach(b=>see(b.order_date));DB.shipping.forEach(s=>see(s.ship_date));DB.purchase.forEach(p=>see(p.purchase_date));DB.receiving.forEach(r=>see(r.recv_date));
+  Object.keys(DB.fabsnaps||{}).forEach(see);DATA_Y0=y}
+ DATA_START=new Date(DATA_Y0,0,1);
+}
+
+/* ---------------- helpers for report parsing ---------------- */
+const cellS=v=>String(v==null?'':v).replace(/\s+/g,' ').trim();
+const numV=v=>{if(typeof v==='number')return v;const s=String(v==null?'':v).replace(/,/g,'').trim();if(s===''||isNaN(+s))return 0;return +s};
+const xlDate=n=>{const x=+n;if(!x||isNaN(x))return '';const d=new Date(1899,11,30);d.setDate(d.getDate()+Math.floor(x));return ymd(d)};
+const keyN=s=>cellS(s).toUpperCase();
+function labelVal(row,label){const i=row.findIndex(c=>cellS(c).replace(/[:：]$/,'')===label.replace(/[:：]$/,''));if(i<0)return null;for(let j=i+1;j<row.length;j++){const v=row[j];if(cellS(v)!=='')return v}return ''}
+function headerMap(row){const m={};row.forEach((c,i)=>{const s=cellS(c);if(s&&m[s]==null)m[s]=i});return m}
+function findRow(aoa,pred,from=0,to=aoa.length){for(let i=from;i<Math.min(to,aoa.length);i++)if(pred(aoa[i].map(cellS)))return i;return -1}
+function criteria(aoa,label){for(let i=0;i<Math.min(6,aoa.length);i++){const r=aoa[i];const k=r.findIndex(c=>cellS(c).replace(/[:：]$/,'')===label);if(k>=0){const vals=[];for(let j=k+1;j<r.length&&vals.length<2;j++){const s=cellS(r[j]);if(s&&s!=='～'&&s!=='~')vals.push(r[j]);if(/[:：]$/.test(s))break}return vals}}return null}
+const listDate=aoa=>{const v=criteria(aoa,'列表日期');return v&&v[0]!=null?xlDate(v[0]):''};
+const fileYear=name=>{const m=String(name).match(/[A-Za-z](20\d{2})(?!\d)/);return m?+m[1]:null};
+let IDSEQ=0; const nid=p=>p+Date.now().toString(36)+(IDSEQ++).toString(36);
+
+/* ---------------- ERP report registry ---------------- */
+const REPORTS=[
+ {k:'cod700',fn:'W_COD700',zh:'訂單總表',en:'Order list',ds:'orders',title:/訂單資料表|訂單資料綜合/,use:['接單日、客戶、單價、交期（讓訂單能分月、算金額）','Order date, customer, price, delivery'],file:'2014-2026.txt'},
+ {k:'cod690',fn:'W_COD690',zh:'訂單統計表（分PO）',en:'Order progress by PO',ds:'orders',title:/訂單統計表/,use:['訂單量 / 裁剪量 / 入庫量 / 出貨量','Order, cut, FG and shipped qty'],file:'Q2014, Q2015…',parser:'parseCOD690',yearly:1},
+ {k:'cod550',fn:'W_COD550',zh:'訂單用料清單（BOM）',en:'BOM',ds:'bom',title:/訂單用料清單/,use:['每張訂單的主料 / 副料用量','Main / trim material usage per order'],file:'B01, B02…',parser:'parseCOD550'},
+ {k:'cst580',fn:'W_CST580',zh:'成品入庫資料報表',en:'FG stock-in',ds:'fg',title:/成品入庫資料/,use:['每天成品入庫件數與尺碼','Daily FG stock-in with sizes'],file:'R2014, R2015…',parser:'parseCST580',yearly:1},
+ {k:'stkmain',fn:'W_CSTA10V / W_CST541',zh:'主料庫存明細表',en:'Main material stock',ds:'fabric',title:/主料庫存/,use:['布料庫存（時點值）','Fabric stock (snapshot)'],file:'K01',parser:'parseSTK'},
+ {k:'stktrim',fn:'W_CSTA20V / W_CST551',zh:'副料庫存明細表',en:'Trim stock',ds:'accessories',title:/副料庫存|輔料庫存/,use:['輔料庫存（時點值）','Trim stock (snapshot)'],file:'K02',parser:'parseSTK',guess:1},
+ {k:'cpu795',fn:'W_CPU795',zh:'主副料採購單價',en:'Purchase price',ds:'purchase',title:/採購單價/,use:['料價 → BOM 預估料費','Material prices → BOM cost'],file:'PRICE_master'},
+ {k:'cbl300',fn:'W_CBL300',zh:'出貨資料',en:'Shipments',ds:'shipping',title:/出貨資料/,use:['出貨單、出貨量、發票','Shipments, qty, invoice'],file:'SHIP_with_price'},
+ {k:'cba190',fn:'W_CBA190',zh:'款式 SMV（成本基數）',en:'Style SMV',ds:'smv',title:/成本基數|款式基本/,use:['工時 → 工資 / 製費','Minutes → labour / overhead'],file:'SMV_master_1845'},
+ {k:'cva300',fn:'W_CVA300',zh:'驗布 / 進貨',en:'Fabric inspection',ds:'receiving',title:/驗布/,use:['進貨驗收','Receiving'],file:'—'},
+ {k:'cst302',fn:'W_CST302',zh:'成品庫存',en:'FG stock',ds:'fgstock',title:/成品庫存/,use:['成品庫存（時點值）','FG stock'],file:'—'},
+ {k:'cpu350',fn:'W_CPU350',zh:'主料採購',en:'Main material purchase',ds:'purchase',title:/主料採購/,use:['主料採購明細','Main material purchases'],file:'—'},
+ {k:'cpu340',fn:'W_CPU340',zh:'副料採購',en:'Trim purchase',ds:'purchase',title:/副料採購/,use:['副料採購明細','Trim purchases'],file:'—'},
+ {k:'one10x',fn:'W_ONE102/103/104',zh:'（待確認）',en:'(to confirm)',ds:'',title:null,use:['待第一個檔案到了再確認','Confirm when the first file arrives'],file:'—'},
+ {k:'cba860',fn:'W_CBA860',zh:'（待確認）',en:'(to confirm)',ds:'',title:null,use:['待第一個檔案到了再確認','Confirm when the first file arrives'],file:'—'},
+];
+function detectReport(aoa){const head=aoa.slice(0,4).map(r=>r.map(cellS).join(' ')).join(' ');return REPORTS.find(r=>r.title&&r.parser&&r.title.test(head))||null}
+
+/* ---------- W_COD690 訂單統計表(分PO) ---------- */
+function parseCOD690(aoa,file){
+ const hi=findRow(aoa,r=>r.includes('自編單號')&&r.includes('訂單量'),0,40); if(hi<0)throw new Error('找不到表頭（自編單號 / 訂單量）');
+ const H=headerMap(aoa[hi]); const c=n=>H[n]; const rows=[]; let tot=null;
+ for(let i=hi+1;i<aoa.length;i++){const r=aoa[i]; const s=r.map(cellS);
+  if(s.some(x=>/^合計/.test(x))){tot={qty:numV(r[c('訂單量')]),cut:numV(r[c('裁剪量')]),fg:numV(r[c('入庫量')]),ship:numV(r[c('出貨量')])};continue}
+  const my=s[c('自編單號')]; if(!my||my==='自編單號')continue;
+  rows.push({my_no:my,style_name:s[c('款式名稱')]||'',clr:s[c('款式顏色名稱')]||'',po_no:s[c('PO')]||'',qty:numV(r[c('訂單量')]),cut_qty:numV(r[c('裁剪量')]),fg_qty:numV(r[c('入庫量')]),ship_qty:numV(r[c('出貨量')]),_row:i+1});
+ }
+ const y=fileYear(file.name); const T={qty:sum(rows,'qty'),cut:sum(rows,'cut_qty'),fg:sum(rows,'fg_qty'),ship:sum(rows,'ship_qty')};
+ const checks=[];
+ if(tot){['qty','cut','fg','ship'].forEach(x=>checks.push({ok:Math.abs(T[x]-tot[x])<0.5,msg:`${{qty:'訂單量',cut:'裁剪量',fg:'入庫量',ship:'出貨量'}[x]} ${fmt(T[x],T[x]%1?1:0)} ${Math.abs(T[x]-tot[x])<0.5?'= 報表合計':'≠ 報表合計 '+fmt(tot[x])}`}))}
+ else checks.push({ok:false,msg:'報表沒有合計列，無法核對'});
+ if(!T.cut&&rows.length)checks.push({ok:null,msg:'裁剪量全部是 0（ERP 這張報表沒有記錄裁剪）'});
+ const sg=rows.filter(r=>r.ship_qty>r.fg_qty).length; if(sg)checks.push({ok:null,msg:`${fmt(sg)} 列出貨量 > 入庫量`});
+ if(!y)checks.push({ok:null,msg:'檔名沒有年份（例 Q2014），訂單年份未知'});
+ return {rep:'cod690',rows,meta:{key:'cod690|'+(y||file.name),year:y,asof:listDate(aoa),label:y?`${y} 年訂單`:file.name,range:y?[y+'-01-01',y+'-12-31']:null,totals:T,reportTotal:tot},checks};
+}
+/* ---------- W_CST580 成品入庫資料報表 ---------- */
+function parseCST580(aoa,file){
+ const hi=findRow(aoa,r=>r.includes('入庫日期')&&r.includes('客戶')&&r.includes('自編單號'),0,40); if(hi<0)throw new Error('找不到表頭（入庫日期 / 客戶 / 自編單號）');
+ const H=headerMap(aoa[hi]); const c=n=>H[n]; const qc=c('數量'); const rows=[]; let bad=0;
+ for(let i=hi+1;i<aoa.length;i++){const r=aoa[i]; const dv=r[c('入庫日期')]; const cust=cellS(r[c('客戶')]);
+  if(!(typeof dv==='number'||/^\d+(\.\d+)?$/.test(cellS(dv)))||!cust)continue;
+  const rec={fg_date:xlDate(dv),cust,my_no:cellS(r[c('自編單號')]),style:cellS(r[c('款式')]),style_name:cellS(r[c('款式名稱')]),po_no:cellS(r[c('PO')]),clr:cellS(r[c('顏色')]),erp_qty:numV(r[qc]),acc_qty:null,prod_qty:null,_row:i+1};
+  const lab=aoa[i+1]||[], qv=aoa[i+2]||[]; const sz=[]; let ss=0;
+  for(let j=0;j<Math.max(lab.length,qv.length);j++){const l=cellS(lab[j]);if(l&&j!==qc){const q=numV(qv[j]);sz.push(l+':'+q);ss+=q}}
+  rec.sizes=sz.join(' '); if(sz.length&&Math.abs(ss-rec.erp_qty)>0.01)bad++; rows.push(rec); i+=2;
+ }
+ const cr=criteria(aoa,'入庫日期'); const from=cr&&cr[0]?xlDate(cr[0]):'', to=cr&&cr[1]?xlDate(cr[1]):'';
+ const ds=rows.map(r=>r.fg_date).sort(); const checks=[{ok:bad===0,msg:bad?`${bad} 筆尺碼合計 ≠ 數量`:'每一筆尺碼合計 = 數量'}];
+ checks.push({ok:null,msg:'這張報表沒有合計列，總數以逐筆加總為準'});
+ return {rep:'cst580',rows,meta:{key:'cst580|'+(from||'')+'|'+(to||file.name),asof:listDate(aoa),label:from?`入庫日 ${from} ～ ${to}`:file.name,range:from?[from,to]:[ds[0],ds[ds.length-1]],totals:{qty:sum(rows,'erp_qty'),n:rows.length},dataRange:[ds[0],ds[ds.length-1]]},checks};
+}
+/* ---------- 主料 / 副料 庫存明細表 ---------- */
+function parseSTK(aoa,file,rep){
+ const hi=findRow(aoa,r=>r.includes('料號')&&r.includes('庫存量'),0,40); if(hi<0)throw new Error('找不到表頭（料號 / 庫存量）');
+ const H=headerMap(aoa[hi]); const c=n=>H[n]; const rows=[]; let tot=null;
+ for(let i=hi+1;i<aoa.length;i++){const r=aoa[i]; const s=r.map(cellS);
+  if(s.some(x=>/^合計/.test(x))){tot={rolls:numV(r[c('疋數')]),bal:numV(r[c('庫存量')])};continue}
+  const no=s[c('料號')]; if(!no||no==='料號')continue;
+  rows.push({material_no:no,name:s[c('料品名稱')]||'',item:s[c('料品名稱')]||'',width:s[c('幅寬')]||'',weight:s[c('碼重')]||'',color:s[c('顏色')]||'',color_name:s[c('顏色名稱')]||'',unit:s[c('單位')]||'',rolls:c('疋數')!=null?numV(r[c('疋數')]):null,balance:numV(r[c('庫存量')]),_row:i+1});
+ }
+ const asof=listDate(aoa)||ymd(TODAY); const T={bal:sum(rows,'balance'),rolls:sum(rows,'rolls')}; const checks=[];
+ if(tot)checks.push({ok:Math.abs(T.bal-tot.bal)<0.05,msg:`庫存量 ${fmt(T.bal,2)} ${Math.abs(T.bal-tot.bal)<0.05?'= 報表合計':'≠ 報表合計 '+fmt(tot.bal,2)}`});
+ const nr=rows.filter(r=>r.rolls<0).length; if(nr)checks.push({ok:null,msg:`${fmt(nr)} 列疋數為負數（ERP 疋數沒有維護，只看碼數）`});
+ const nb=rows.filter(r=>r.balance<0).length; if(nb)checks.push({ok:null,msg:`${nb} 列庫存量為負數`});
+ return {rep,rows,meta:{key:rep+'|'+asof,asof,label:'As of '+asof,range:[asof,asof],totals:T,reportTotal:tot},checks};
+}
+/* ---------- W_COD550 訂單用料清單一覽表 ---------- */
+function parseCOD550(aoa,file){
+ const rows=[]; const heads=[]; let cur=null, sec=null, H=null;
+ for(let i=0;i<aoa.length;i++){const r=aoa[i]; const s=r.map(cellS);
+  if(s.includes('訂單號碼:')||s.includes('訂單號碼：')){const dv=labelVal(r,'訂單日期:');cur={od_no:cellS(labelVal(r,'訂單號碼:')),my_no:cellS(labelVal(r,'自編單號:')),order_date:xlDate(dv),cust:cellS(labelVal(r,'客戶:')),style:cellS(labelVal(r,'款式:')),main:0,trim:0};heads.push(cur);sec=null;continue}
+  if(s.some(x=>/^主料[：:]/.test(x))){sec='main';continue} if(s.some(x=>/^副料[：:]/.test(x))){sec='trim';continue}
+  if(s.includes('料品名稱')){H=headerMap(r);continue}
+  if(!cur||!sec||!H)continue; const nm=s[H['料品名稱']]; if(!nm)continue;
+  const g=n=>H[n]!=null?s[H[n]]:''; const tu=numV(g('總用量')), oq=numV(g('訂單量'));
+  rows.push({od_no:cur.od_no,my_no:cur.my_no,cust:cur.cust,style:cur.style,order_date:cur.order_date,type:sec,material:nm,material_no:'',color:g('顏色'),size:g('尺寸'),width:g('幅寬'),weight:g('碼重'),
+   total_use:tu,order_qty:oq,cons:oq?+(tu/oq).toFixed(4):null,unit:g('用量單位'),buy_unit:g('採購單位'),position:g('部位'),dest:g('PO/ID/目的地'),supplier:g('廠商'),loss:null,price:null,est_cost:null,_row:i+1});
+  cur[sec]++;
+ }
+ const cr=criteria(aoa,'自編單號'); const from=cr&&cr[0]!=null?cellS(cr[0]):'', to=cr&&cr[1]!=null?cellS(cr[1]):'';
+ const ds=heads.map(h=>h.order_date).filter(Boolean).sort(); const nm=heads.filter(h=>!h.main).length;
+ const checks=[{ok:heads.length>0,msg:`${fmt(heads.length)} 張訂單 · 主料 ${fmt(rows.filter(r=>r.type==='main').length)} 列 · 副料 ${fmt(rows.filter(r=>r.type==='trim').length)} 列`}];
+ if(nm)checks.push({ok:null,msg:`${nm} 張訂單沒有主料`});
+ checks.push({ok:null,msg:'BOM 匯出沒有料號，也沒有單價（料價需另匯 W_CPU795）'});
+ return {rep:'cod550',rows,heads,meta:{key:'cod550|'+from+'|'+to,label:from?`自編單號 ${from} ～ ${to}`:file.name,range:[ds[0]||'',ds[ds.length-1]||''],asof:listDate(aoa),totals:{orders:heads.length,lines:rows.length}},checks};
+}
+const PARSERS={parseCOD690,parseCST580,parseSTK,parseCOD550};
+
+/* ---------------- apply a parsed report into the cloud store ---------------- */
+function erpMeta(file,P,i){return {source_system:'LEGACY_ERP',source_record_id:(REPORTS.find(r=>r.k===P.rep)||{}).fn+'#'+i,source_file:file,import_batch_id:P.batch,import_key:P.meta.key,synced_at:nowStamp()}}
+function ordKey(my,po){return keyN(my)+'|'+keyN(po)}
+function enrichOrders(){const idx=DB.ordidx||{};let n=0;DB.orders.forEach(o=>{const x=idx[keyN(o.my_no)];if(!x)return;if(!o.order_date&&x.date){o.order_date=x.date;n++}if(!o.cust&&x.cust)o.cust=x.cust;if(!o.od_no&&x.od_no)o.od_no=x.od_no;if(!o.style&&x.style)o.style=x.style});return n}
+const REP_DS={cod690:'orders',cst580:'fg',cod550:'bom',stkmain:'fabric',stktrim:'accessories'};
+const REP_SHEET={cod690:'ORDERS',cst580:'FG',cod550:'BOM',stkmain:'FABRIC',stktrim:'ACCESS'};
+function buildRecords(P,fileName){
+ if(P.rep==='cod690')return P.rows.map(r=>({id:nid('q'),od_no:'',od_seq:'',my_no:r.my_no,po_no:r.po_no,cust:'',style:'',style_name:r.style_name,clr:r.clr,order_date:'',order_year:P.meta.year||null,delivery:'',
+  qty:r.qty,price:null,currency:'',cut_qty:r.cut_qty,fg_qty:r.fg_qty,ship_qty:r.ship_qty,status:r.ship_qty>=r.qty&&r.qty>0?'closed':'open',smv:null,...erpMeta(fileName,P,r._row)}));
+ if(P.rep==='cst580')return P.rows.map(r=>({id:nid('r'),od_no:'',...r,...erpMeta(fileName,P,r._row)}));
+ if(P.rep==='stkmain'||P.rep==='stktrim')return P.rows.map(r=>({id:nid(P.rep==='stkmain'?'f':'a'),...r,lot:'',location:'',received:null,issued:null,allocated:null,available:null,wh_count:null,...erpMeta(fileName,P,r._row)}));
+ if(P.rep==='cod550')return P.rows.map(r=>({id:nid('b'),...r,...erpMeta(fileName,P,r._row)}));
+ return [];
+}
+/* put one batch of finished records into the store (used by import and by cloud download) */
+function storeBatch(rep,key,meta,recs){
+ let removed=0; const ds=REP_DS[rep];
+ if(rep==='stkmain'||rep==='stktrim'){const sn=rep==='stkmain'?'fabsnaps':'accsnaps'; const asof=meta.asof; const cur=DB.asof[ds];
+  Object.keys(DB[sn]).forEach(d=>{if(d===asof){removed+=DB[sn][d].length;delete DB[sn][d]}});
+  if(!cur||asof>=cur){if(cur&&cur!==asof&&DB[ds].length)DB[sn][cur]=DB[ds].filter(x=>!x.deleted_at);if(cur===asof)removed+=DB[ds].length;DB[ds]=recs;DB.asof[ds]=asof}
+  else DB[sn][asof]=recs}
+ else{const before=DB[ds].length;DB[ds]=DB[ds].filter(x=>x.import_key!==key);removed=before-DB[ds].length;for(const r of recs)DB[ds].push(r)}
+ if(rep==='cod550'){DB.ordidx=DB.ordidx||{};recs.forEach(b=>{if(b.my_no&&!DB.ordidx[keyN(b.my_no)])DB.ordidx[keyN(b.my_no)]={od_no:b.od_no,date:b.order_date,cust:b.cust,style:b.style}})}
+ const updated=enrichOrders();
+ DB.erpfiles=(DB.erpfiles||[]).filter(f=>f.key!==key); DB.erpfiles.unshift(meta);
+ updateDataRange(); GC.clear(); COSTC.clear();
+ return {added:recs.length,removed,updated};
+}
+function applyERP(P,fileName){
+ P.batch='ERP-'+ymd(new Date()).replace(/-/g,'')+'-'+pad(DB.importlog.length,3);
+ const R=REPORTS.find(r=>r.k===P.rep), recs=buildRecords(P,fileName);
+ const meta={key:P.meta.key,rep:P.rep,fn:R.fn,file:fileName,rows:recs.length,label:P.meta.label,range:P.meta.range,asof:P.meta.asof,year:P.meta.year||null,totals:P.meta.totals,checks:P.checks,at:nowStamp(),batch:P.batch,dirty:true,version:null};
+ const r=storeBatch(P.rep,P.meta.key,meta,recs);
+ DB.importlog.unshift({batch:P.batch,time:nowStamp().slice(0,16),file:fileName,dataset:R.fn+' '+R.zh,rows:recs.length,n:r.added,u:r.updated,d:0,e:0,df:0,replaced:r.removed,user:'paul.weng'});
+ audit('smart-import',P.batch,'IMPORT',null,{file:fileName,report:R.fn,key:P.meta.key,added:r.added,replaced:r.removed});
+ persist(); return r;
+}
+
+/* =================== ☁️ cloud sync (Google Sheets via PSJERP.gs) =================== */
+const CLOUD={busy:false,state:'idle',msg:'',last:LS.get('psjerp_cloud_last',''),url:'',files:0,sheet:''};
+const cloudKey=()=>String(LS.get('psjerp_synckey','')||'').trim();
+const cloudUrl=()=>String(syncCfg().gas||'').trim();
+const cloudReady=()=>!isDemo()&&/\/exec$/.test(cloudUrl())&&!!cloudKey();
+async function cget(params){const q=new URLSearchParams(Object.assign({k:cloudKey()},params)).toString();const r=await fetch(cloudUrl()+'?'+q);const j=await r.json();if(!j.ok)throw new Error(j.msg||j.error||'error');return j}
+async function cpost(body){const r=await fetch(cloudUrl(),{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({api:'psjerp',k:cloudKey()},body))});const j=await r.json();if(!j.ok)throw new Error(j.msg||j.error||'error');return j}
+function batchRecs(f){const ds=REP_DS[f.rep];if(!ds)return [];
+ if(f.rep==='stkmain'||f.rep==='stktrim'){const sn=f.rep==='stkmain'?'fabsnaps':'accsnaps';return (DB.asof[ds]===f.asof?DB[ds]:(DB[sn][f.asof]||[])).filter(r=>r.import_key===f.key)}
+ return DB[ds].filter(r=>r.import_key===f.key)}
+const SKIP_COLS=new Set(['notes','tags','_nat','deleted_at','deleted_by','_row','_snap','_orig','_ovr','att']);
+function cloudSetState(st,msg){CLOUD.state=st;CLOUD.msg=msg||'';const b=$('#cloudBadge');if(b)paintCloudBadge(b)}
+function paintCloudBadge(b){if(isDemo()){b.hidden=true;return}b.hidden=false;
+ const m={idle:['☁️',tt('雲端','Cloud')],off:['☁️',tt('雲端未連線','Cloud off')],busy:['🔄',CLOUD.msg||tt('同步中…','Syncing…')],ok:['☁️',tt('已同步 ','Synced ')+(CLOUD.last||'').slice(11,16)],err:['⚠️',tt('同步失敗','Sync failed')]}[cloudReady()?CLOUD.state:'off'];
+ b.className='cloud-badge '+(cloudReady()?CLOUD.state:'off');b.textContent=m[0]+' '+m[1];b.title=CLOUD.msg||''}
+async function pushBatch(f){
+ const recs=batchRecs(f); const cols=[...new Set(recs.flatMap(r=>Object.keys(r)))].filter(c=>!SKIP_COLS.has(c));
+ const types=cols.map(c=>recs.some(r=>typeof r[c]==='number')?'n':recs.every(r=>r[c]==null)?'z':'s'); const n=Math.max(1,Math.ceil(recs.length/2500)); let ver=null;
+ for(let i=0;i<n;i++){const chunk=recs.slice(i*2500,(i+1)*2500).map(r=>cols.map(c=>r[c]==null?null:(typeof r[c]==='object'?JSON.stringify(r[c]):r[c])));
+  cloudSetState('busy',tt('上傳 ','Uploading ')+f.fn+' '+(i+1)+'/'+n);
+  const meta=i===n-1?{rep:f.rep,fn:f.fn,file:f.file,label:f.label,range:f.range,asof:f.asof,year:f.year,totals:f.totals,checks:f.checks,at:f.at,batch:f.batch,user:'paul.weng'}:null;
+  const j=await cpost({action:'erp_put',sheet:REP_SHEET[f.rep],key:f.key,part:i,cols,types,rows:chunk,meta}); if(j.version)ver=j.version}
+ f.version=ver; f.dirty=false;
+}
+const PJ=v=>{if(v==null||v==='')return null;if(typeof v!=='string')return v;try{return JSON.parse(v)}catch(e){return v}};
+async function pullBatch(m){
+ const cols=PJ(m.cols)||[], types=PJ(m.types)||[]; let rows=[], off=0, total=+m.rows||0;
+ do{cloudSetState('busy',tt('下載 ','Downloading ')+m.fn+' '+fmt(Math.min(total,off+3000))+'/'+fmt(total));
+  const j=await cget({action:'erp_get',sheet:m.sheet,key:m.key,offset:off,limit:3000}); rows=rows.concat(j.rows); total=j.total; off+=3000}while(off<total);
+ const C=rows.length?(await Promise.resolve(cols)):cols;
+ const recs=rows.map(a=>{const o={};C.forEach((c,i)=>{let v=a[i];if(types[i]==='n'){v=(v===''||v==null)?null:+v}else if(types[i]==='z')v=null;else v=v==null?'':String(v);o[c]=v});return o});
+ recs.forEach(r=>{if(r.order_year==='')r.order_year=null});
+ const meta={key:m.key,rep:m.rep,fn:m.fn,file:m.file,rows:recs.length,label:m.label,range:PJ(m.range),asof:m.asof||'',year:m.year?+m.year:null,totals:PJ(m.totals),checks:PJ(m.checks)||[],at:m.at,batch:m.batch,version:String(m.version),dirty:false,cloud:true};
+ storeBatch(m.rep,m.key,meta,recs);
+}
+let NOTEQ=[];
+function cloudNote(ds,r){if(isDemo())return;NOTEQ=NOTEQ.filter(x=>x.id!==r.id);NOTEQ.push({id:r.id,ds,notes:r.notes||'',tags:(r.tags||[]).join(', ')});r._nat=nowStamp();if(cloudReady())cloudSync(false)}
+async function cloudSync(manual){
+ if(CLOUD.busy||isDemo())return; if(!cloudReady()){cloudSetState('off');if(manual)toast(tt('請先在「設定 → 雲端同步」輸入同步密碼','Enter the sync password in Settings → Cloud sync first'));return}
+ CLOUD.busy=true; let pulled=0, pushed=0;
+ try{
+  cloudSetState('busy',tt('讀取雲端清單…','Reading cloud list…'));
+  const man=await cget({action:'erp_manifest'}); CLOUD.url=man.url||''; const files=man.files||[]; CLOUD.files=files.length;
+  const justPushed=new Set();
+  for(const f of (DB.erpfiles||[]).filter(f=>f.dirty||!f.version)){await pushBatch(f);justPushed.add(f.key);pushed++;persist()}
+  for(const m of files){if(justPushed.has(m.key))continue;const loc=(DB.erpfiles||[]).find(f=>f.key===m.key);if(loc&&(loc.dirty||String(loc.version)===String(m.version)))continue;await pullBatch(m);pulled++;persist()}
+  for(const n of NOTEQ.splice(0)){await cpost({action:'erp_note',id:n.id,ds:n.ds,notes:n.notes,tags:n.tags,user:'paul.weng'})}
+  (man.notes||[]).forEach(n=>{const arr=DB[n.ds]||[];const r=arr.find(x=>x.id===n.id);if(!r)return;if(r._nat&&r._nat>String(n.at))return;r.notes=String(n.notes||'');r.tags=String(n.tags||'').split(',').map(x=>x.trim()).filter(Boolean);r._nat=String(n.at)});
+  CLOUD.last=nowStamp(); LS.set('psjerp_cloud_last',CLOUD.last); cloudSetState('ok'); persist();
+  if(pulled||pushed||manual){toast(tt('雲端同步完成','Cloud sync done')+(pushed?` · ${tt('上傳','up')} ${pushed}`:'')+(pulled?` · ${tt('下載','down')} ${pulled}`:''));rerender()}
+ }catch(e){console.error(e);cloudSetState('err',String(e.message||e));if(manual||/密碼|KEY/.test(String(e.message)))toast(tt('雲端同步失敗：','Cloud sync failed: ')+(e.message||e))}
+ finally{CLOUD.busy=false}
+}
+async function cloudSaveKey(id){const v=($('#'+id)||{}).value||'';LS.set('psjerp_synckey',v.trim());CLOUD.state='idle';await cloudSync(true);rerender()}
+function cloudBanner(){
+ if(isDemo()||cloudKey())return '';
+ return `<div class="panel cloud-ask"><b>☁️ ${tt('連上雲端：手機和電腦看同一份資料','Connect to the cloud: phone and PC see the same data')}</b><span class="small muted">${tt('每台裝置輸入一次同步密碼即可','enter the sync password once per device')}</span>
+  <div style="display:flex;gap:6px;flex-wrap:wrap"><input class="inp" id="ckBanner" placeholder="VRT-XXXX-XXXX" autocomplete="off" style="width:180px"><button class="btn pri" onclick="cloudSaveKey('ckBanner')">${tt('連線','Connect')}</button></div></div>`;
+}
+function cloudPanel(){
+ const F=DB.erpfiles||[], unsynced=F.filter(f=>f.dirty||!f.version).length;
+ return `<div class="panel mt"><h2>☁️ ${tt('雲端同步（Google Sheets）','Cloud sync (Google Sheets)')}</h2><p class="hint">${tt('匯入的 ERP 資料會自動上傳到 Google Sheet「PSJERP_ERPDATA」；其他裝置打開網頁會自動下載。讀寫都要同步密碼。','Imported ERP data uploads to the Google Sheet "PSJERP_ERPDATA"; other devices download it on open. Reading and writing need the sync password.')}</p>
+ <div class="form"><div class="field"><label for="ckSet">${tt('同步密碼','Sync password')}</label><input class="inp mono" id="ckSet" value="${esc(cloudKey())}" placeholder="VRT-XXXX-XXXX" autocomplete="off"></div>
+ <div class="field"><label>${esc(t('status'))}</label><div style="padding:7px 0">${cloudReady()?(CLOUD.state==='err'?stChip('crit',tt('失敗：','Failed: ')+CLOUD.msg):stChip('good',tt('已連線','Connected'))):stChip('warn',tt('未連線','Not connected'))} <span class="small muted">${tt('上次同步 ','Last sync ')}${esc(CLOUD.last||'—')}</span></div></div></div>
+ <div class="kv" style="margin-top:8px"><div><dt>${tt('這台裝置的 ERP 批次','ERP batches on this device')}</dt><dd>${fmt(F.length)}</dd></div><div><dt>${tt('尚未上傳','Not uploaded yet')}</dt><dd>${fmt(unsynced)}</dd></div><div><dt>${tt('雲端批次','Cloud batches')}</dt><dd>${CLOUD.files?fmt(CLOUD.files):'—'}</dd></div><div><dt>Google Sheet</dt><dd>${CLOUD.url?`<a href="${esc(CLOUD.url)}" target="_blank" rel="noopener">PSJERP_ERPDATA ↗</a>`:'—'}</dd></div></div>
+ <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn pri" onclick="cloudSaveKey('ckSet')">${tt('儲存並同步','Save & sync')}</button><button class="btn" onclick="cloudSync(true)">${tt('立即同步','Sync now')}</button></div></div>`;
+}
+
+/* ---------------- multi-file queue ---------------- */
+let IMPQ=[];
+async function readAOA(file){
+ if(/\.(csv|txt|tsv)$/i.test(file.name)){const buf=await file.arrayBuffer();let txt;try{txt=new TextDecoder('utf-8',{fatal:true}).decode(buf)}catch(e){try{txt=new TextDecoder('big5').decode(buf)}catch(e2){txt=new TextDecoder().decode(buf)}}
+  txt=txt.replace(/^﻿/,'');const dl=txt.split('\n').slice(0,20).join('\n').includes('\t')?'\t':',';
+  return {aoa:txt.split(/\r?\n/).map(line=>{const out=[];let cur='',q=false;for(let i=0;i<line.length;i++){const ch=line[i];if(q){if(ch==='"'&&line[i+1]==='"'){cur+='"';i++}else if(ch==='"')q=false;else cur+=ch}else if(ch==='"'&&cur==='')q=true;else if(ch===dl){out.push(cur);cur=''}else cur+=ch}out.push(cur);return out}),sheets:[file.name.replace(/\.[^.]+$/,'')]}}
+ if(!window.XLSX)throw new Error(tt('Excel 解析器載入失敗，請檢查網路後重新整理','Excel parser failed to load — check the connection and reload'));
+ const wb=XLSX.read(await file.arrayBuffer(),{type:'array',cellDates:false,raw:true});const sn=wb.SheetNames[0];
+ return {aoa:XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,raw:true,defval:''}),sheets:wb.SheetNames};
+}
+async function handleFiles(list){
+ const files=[...list]; if(!files.length)return; toast(tt('讀取中…','Reading…'));
+ let generic=null;
+ for(const f of files){
+  try{const {aoa,sheets}=await readAOA(f); const R=detectReport(aoa);
+   if(R){const P=PARSERS[R.parser](aoa,f,R.k); const existing=(DB.erpfiles||[]).find(x=>x.key===P.meta.key);
+    IMPQ=IMPQ.filter(q=>q.P.meta.key!==P.meta.key); IMPQ.push({file:f.name,size:f.size,R,P,existing});}
+   else generic={f,aoa,sheets};
+  }catch(e){IMPQ.push({file:f.name,err:String(e.message||e)})}
+ }
+ if(generic&&!IMPQ.length){await handleFile(generic.f);return}
+ if(generic)IMPQ.push({file:generic.f.name,generic:generic.f});
+ go('smart-import'); rerender();
+}
+function confirmERPAll(){
+ const done=[]; IMPQ.filter(q=>q.P&&!q.done).forEach(q=>{const r=applyERP(q.P,q.file);q.done=r;done.push(q)});
+ COSTC.clear(); toast(tt('已匯入 ','Imported ')+done.length+tt(' 個檔','files')); rerender(); if(cloudReady())setTimeout(()=>cloudSync(false),300);
+}
+function dropQ(i){IMPQ.splice(i,1);rerender()}
+function erpQueueHTML(){
+ if(!IMPQ.length)return '';
+ const pend=IMPQ.filter(q=>q.P&&!q.done).length;
+ let h=`<div class="panel mt"><h2>${tt('ERP 報表辨識結果','ERP reports detected')}</h2><p class="hint">${tt('系統依報表標題自動辨識，逐筆加總後與報表合計核對。確認後才寫入；同條件（同年份 / 同期間 / 同批次）的舊資料會被取代，不會重複。','Detected by report title; totals are re-added and checked against the report total. Nothing is saved until you confirm; older data with the same scope is replaced, never duplicated.')}</p>
+ <div class="tbl-wrap"><table class="t cards"><thead><tr><th>${tt('檔案','File')}</th><th>${tt('報表','Report')}</th><th>${tt('範圍','Scope')}</th><th class="r">${tt('筆數','Rows')}</th><th>${tt('核對','Checks')}</th><th>${esc(t('status'))}</th><th></th></tr></thead><tbody>`;
+ IMPQ.forEach((q,i)=>{
+  if(q.err){h+=`<tr><td class="lead mono" data-l="">${esc(q.file)}</td><td colspan="5" data-l="">${stChip('crit',tt('讀取失敗','Failed'))} <span class="small">${esc(q.err)}</span></td><td data-l=""><button class="btn sm" onclick="dropQ(${i})">✕</button></td></tr>`;return}
+  if(q.generic){h+=`<tr><td class="lead mono" data-l="">${esc(q.file)}</td><td colspan="5" data-l="">${stChip('warn',tt('不是已知 ERP 報表','Not a known ERP report'))} <span class="small muted">${tt('用通用智慧匯入處理','use generic Smart Import')}</span></td><td data-l=""><button class="btn sm" onclick="handleFile(IMPQ[${i}].generic);dropQ(${i})">${tt('通用匯入','Generic')}</button></td></tr>`;return}
+  const P=q.P, T=P.meta.totals;
+  h+=`<tr><td class="lead mono" data-l="">${esc(q.file)}</td><td data-l="${tt('報表','Report')}"><b>${esc(q.R.fn)}</b><br><span class="small">${esc(LANG===0?q.R.zh:q.R.en)}</span></td><td data-l="${tt('範圍','Scope')}" class="wrap">${esc(P.meta.label)}${P.meta.dataRange?`<br><span class="small muted">${tt('實際資料','data')} ${esc(P.meta.dataRange[0])} ～ ${esc(P.meta.dataRange[1])}</span>`:''}</td>
+   <td class="r" data-l="${tt('筆數','Rows')}">${fmt(P.rows.length)}${T&&T.qty!=null?`<br><span class="small muted">${fmt(T.qty)} ${tt('件','pcs')}</span>`:''}${T&&T.bal!=null?`<br><span class="small muted">${fmt(T.bal,2)} ${tt('碼','yd')}</span>`:''}</td>
+   <td class="wrap small" data-l="${tt('核對','Checks')}">${P.checks.map(c=>`<div>${c.ok===true?'✅':c.ok===false?'❌':'⚠️'} ${esc(c.msg)}</div>`).join('')}</td>
+   <td data-l="${esc(t('status'))}">${q.done?stChip('good',tt('已匯入','Imported')+` +${fmt(q.done.added)}`+(q.done.removed?` / ${tt('取代','replaced')} ${fmt(q.done.removed)}`:'')):q.existing?stChip('warn',tt('將取代舊資料','Will replace')+' '+fmt(q.existing.rows)):stChip('info',tt('新資料','New'))}</td>
+   <td data-l="">${q.done?'':`<button class="btn sm" onclick="dropQ(${i})">✕</button>`}</td></tr>`;
+ });
+ h+=`</tbody></table></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap">${pend?`<button class="btn" onclick="IMPQ=[];rerender()">${esc(t('cancel'))}</button><button class="btn pri" onclick="confirmERPAll()">${tt('確認匯入','Confirm import')} (${pend})</button>`:`<button class="btn" onclick="IMPQ=[];rerender()">${tt('清除清單','Clear list')}</button>`}</div>
+ <p class="small muted" style="margin:8px 0 0">${tt('只寫入 PSJERP 雲端資料（此瀏覽器）；不寫回 clothes.exe。','Writes to PSJERP cloud data (this browser) only; never back to clothes.exe.')}</p></div>`;
+ return h;
+}
+
+/* ---------------- coverage: which ERP reports are in the system ---------------- */
+function coverageHTML(compact){
+ const F=DB.erpfiles||[]; const yNow=TODAY.getFullYear();
+ let h=`<div class="panel ${compact?'':'mt'}"><h2>${tt('ERP 匯入清單','ERP import checklist')}</h2><p class="hint">${tt('哪些 ERP 報表已經進到系統、範圍到哪裡。檔名照下載時的命名即可（Q2014、R2014、K01、B01…），系統看報表標題辨識。','Which ERP reports are in the system and how far they reach. Keep your download names (Q2014, R2014, K01, B01…); detection uses the report title.')}</p>
+ <div class="tbl-wrap"><table class="t cards"><thead><tr><th>${tt('報表','Report')}</th><th>${tt('用途','Used for')}</th><th>${tt('檔名','File name')}</th><th class="r">${tt('筆數','Rows')}</th><th>${tt('已匯入範圍','Imported scope')}</th><th>${tt('解析器','Parser')}</th><th>${esc(t('status'))}</th></tr></thead><tbody>`;
+ REPORTS.forEach(R=>{const fs=F.filter(f=>f.rep===R.k); const rows=sum(fs,'rows');
+  let scope='—';
+  if(fs.length){if(R.yearly){const ys=new Set();fs.forEach(f=>{if(f.year)ys.add(+f.year);if(f.range&&f.range[0]&&f.range[1]){for(let y=+f.range[0].slice(0,4);y<=+f.range[1].slice(0,4);y++)ys.add(y)}});let ch='';for(let y=2014;y<=yNow;y++)ch+=`<span class="ychip ${ys.has(y)?'on':''}">${String(y).slice(2)}</span>`;scope=`<div class="ychips">${ch}</div>`}
+   else scope=fs.map(f=>esc(f.label)).slice(0,4).join('<br>')+(fs.length>4?`<br><span class="small muted">+${fs.length-4}</span>`:'')}
+  const parser=R.parser?(R.guess?stChip('warn',tt('已建（待實檔確認）','built (to verify)')):stChip('good',tt('已建，已用實檔驗證','built, verified'))):R.title?stChip('neu',tt('通用匯入','generic')):stChip('neu',tt('待建','to build'));
+  const st=fs.length?stChip('good',tt('已匯入','Imported')+' · '+fs.length+tt(' 檔',' files')):stChip(R.parser?'warn':'neu',tt('未匯入','Not imported'));
+  h+=`<tr><td class="lead" data-l=""><b class="mono">${esc(R.fn)}</b> ${esc(LANG===0?R.zh:R.en)}</td><td class="wrap small" data-l="${tt('用途','Used for')}">${esc(R.use[LANG===0?0:1])}</td><td class="mono small" data-l="${tt('檔名','File')}">${esc(R.file)}</td><td class="r" data-l="${tt('筆數','Rows')}">${fs.length?fmt(rows):'—'}</td><td class="wrap small" data-l="${tt('範圍','Scope')}">${scope}</td><td data-l="${tt('解析器','Parser')}">${parser}</td><td data-l="${esc(t('status'))}">${st}</td></tr>`});
+ h+=`</tbody></table></div>`;
+ if(F.length&&!compact)h+=`<h3 style="margin-top:14px">${tt('已匯入檔案','Imported files')}</h3><div class="tbl-wrap"><table class="t cards"><thead><tr><th>${tt('檔案','File')}</th><th>${tt('報表','Report')}</th><th>${tt('範圍','Scope')}</th><th class="r">${tt('筆數','Rows')}</th><th>${tt('核對','Checks')}</th><th>${tt('匯入時間','Imported')}</th></tr></thead><tbody>
+ ${F.map(f=>`<tr><td class="lead mono" data-l="">${esc(f.file)}</td><td data-l="${tt('報表','Report')}" class="mono">${esc(f.fn)}</td><td data-l="${tt('範圍','Scope')}" class="wrap small">${esc(f.label)}</td><td class="r" data-l="${tt('筆數','Rows')}">${fmt(f.rows)}</td><td class="wrap small" data-l="${tt('核對','Checks')}">${(f.checks||[]).map(c=>`${c.ok===true?'✅':c.ok===false?'❌':'⚠️'} ${esc(c.msg)}`).join('<br>')}</td><td data-l="" class="mono small">${esc(f.at)}</td></tr>`).join('')}</tbody></table></div>`;
+ return h+`</div>`;
+}
+const NEED={orders:['cod700','cod690'],bom:['cod550'],purchase:['cpu795','cpu350','cpu340'],receiving:['cva300'],fabric:['stkmain'],accessories:['stktrim'],shipping:['cbl300'],'finished-goods':['cst580'],
+ production:['VRT Prod'],wip:['cod690','VRT Prod','Account Flow'],'factory-cost':['Account Flow'],costing:['cod550','cpu795','cba190','cod700'],dashboard:['cod690','cst580'],reports:['cod690','cst580']};
+function needHTML(k){const n=(NEED[k]||[]).map(x=>{const R=REPORTS.find(r=>r.k===x);return R?`<b class="mono">${esc(R.fn)}</b> ${esc(LANG===0?R.zh:R.en)}`:`<b>${esc(x)}</b>`});
+ return `<div class="panel empty"><h2>${tt('還沒有真實資料','No real data yet')}</h2><p>${tt('這頁需要：','This page needs: ')}${n.join(tt('、',', '))}</p><p class="small muted">${tt('到「智慧匯入」把 ERP 下載的檔案拖進來即可（可一次多個）；已連雲端的話，別台裝置匯入的資料會自動下載。目前不顯示任何假數字。','Drop the ERP files into Smart Import (several at once); with the cloud connected, data imported on other devices downloads automatically. No invented numbers are shown.')}</p>${cloudBanner()}<a class="btn pri" href="#smart-import">🧠 ${esc(t('smart-import'))}</a></div>`}
+
+/* ---------------- real-data checks for the exception centre ---------------- */
+function realExceptions(Rg){
+ const E=[]; Rg=Rg||{all:true};
+ const o=live(DB.orders).filter(x=>x.order_date?inR(x.order_date,Rg):yearCovers(x.order_year,Rg));
+ const o690=o.filter(x=>x.import_key&&x.import_key.startsWith('cod690'));
+ if(o690.length&&!o690.some(x=>x.cut_qty))E.push({sev:'warn',title:tt('ERP 訂單統計表裁剪量全為 0（裁剪請看 VRT Prod）','ERP order report has no cutting qty (use VRT Prod)'),count:fmt(o690.length)+tt(' 列',' rows'),go:'orders'});
+ const sg=o.filter(x=>x.ship_qty>x.fg_qty); if(sg.length)E.push({sev:'warn',title:tt('出貨量 > 入庫量','Shipped > FG in'),count:fmt(sg.length)+tt(' 列',' rows'),go:'orders'});
+ const z=o.filter(x=>!x.qty); if(z.length)E.push({sev:'warn',title:tt('訂單量為 0','Order qty = 0'),count:fmt(z.length)+tt(' 列',' rows'),go:'orders'});
+ const nd=o.filter(x=>!x.order_date); if(nd.length)E.push({sev:'info',title:tt('訂單沒有接單日（只能算年報；匯入 W_COD700 後可分月）','Orders without order date (year view only until W_COD700 is imported)'),count:fmt(nd.length)+tt(' 列',' rows'),go:'orders'});
+ const f=snapRows('fabric',asOfDate(Rg.all?{to:TODAY}:Rg)).rows; const nr=f.filter(x=>x.rolls<0).length, nb=f.filter(x=>x.balance<0).length;
+ if(nr)E.push({sev:'warn',title:tt('主料疋數為負（ERP 未維護疋數）','Negative roll counts (rolls not maintained)'),count:fmt(nr)+tt(' 列',' rows'),go:'fabric'});
+ if(nb)E.push({sev:'crit',title:tt('主料庫存量為負','Negative fabric stock'),count:fmt(nb)+tt(' 列',' rows'),go:'fabric'});
+ const b=live(DB.bom).filter(x=>inR(x.order_date,Rg)); if(b.length){const od=new Set(b.map(x=>x.my_no)), hm=new Set(b.filter(x=>x.type==='main').map(x=>x.my_no)); const nm=[...od].filter(x=>!hm.has(x)).length;
+  if(nm)E.push({sev:'warn',title:tt('BOM 訂單沒有主料','BOM orders without main fabric'),count:fmt(nm)+tt(' 張',' orders'),go:'bom'});
+  if(!b.some(x=>x.price))E.push({sev:'info',title:tt('BOM 沒有料價（需 W_CPU795）','BOM has no prices (needs W_CPU795)'),count:fmt(b.length)+tt(' 列',' lines'),go:'bom'})}
+ return E;
+}
+const yearCovers=(y,R)=>{if(R.all)return true;if(!y)return false;return R.from<=new Date(+y,0,1)&&R.to>=new Date(+y,11,31)};
 
 /* snapshot history for stock modules: month-end values derived from the current ERP snapshot (demo) */
 const SNAP_FIELDS={fabric:r=>{const k=r._k;const f=0.55+0.9*hsh(r.id+k);const bal=Math.round(r.balance*f);const rec=Math.round(Math.max(bal,r.received*(0.6+0.5*hsh('r'+r.id+k))));const al=Math.round(bal*0.7*hsh('a'+r.id+k));
@@ -616,11 +977,17 @@ const SNAP_FIELDS={fabric:r=>{const k=r._k;const f=0.55+0.9*hsh(r.id+k);const ba
 function asOfDate(R){return R.to>TODAY?new Date(TODAY):new Date(R.to)}
 function snapKeyDate(d){const ms=new Date(TODAY.getFullYear(),TODAY.getMonth(),1);if(d>=ms)return null;const me=new Date(d.getFullYear(),d.getMonth()+1,0);return me>d?new Date(d.getFullYear(),d.getMonth(),0):me}
 function snapRows(k,d){
+ if(!isDemo()){const ds=k==='accessories'?'accessories':'fabric', sn=ds==='fabric'?'fabsnaps':'accsnaps'; const cur=DB.asof&&DB.asof[ds];
+  const dates=Object.keys(DB[sn]||{}).concat(cur?[cur]:[]).sort(); const target=ymd(d>TODAY?TODAY:d); let pick=null; dates.forEach(x=>{if(x<=target)pick=x});
+  if(!pick)return {rows:[],asof:dates.length?tt('早於 ','before ')+dates[0]:'—',live:false,none:true};
+  if(pick===cur)return {rows:live(DB[ds]),asof:pick,live:true};
+  return {rows:(DB[sn][pick]||[]).map(r=>({...r,id:r.id+'@'+pick,_snap:pick})),asof:pick,live:false}}
  const base=live(CFG[k].data()); const kd=snapKeyDate(d); if(!kd)return {rows:base,asof:ymd(d>TODAY?TODAY:d),live:true};
  if(kd<DATA_START)return {rows:[],asof:ymd(kd),live:false};
  const key=ymd(kd); return {rows:base.filter(r=>r.source_system==='LEGACY_ERP').map(r=>({...r,...SNAP_FIELDS[k]({...r,_k:key}),id:r.id+'@'+key,_snap:key})),asof:key,live:false};
 }
 function wipAt(d){
+ if(!isDemo()){const op=live(DB.orders).filter(o=>(o.cut_qty||0)>0&&o.status!=='closed');return {asof:ymd(d>TODAY?TODAY:d),prod:null,erp:op.length?sum(op,o=>o.cut_qty-o.fg_qty):null,acc:null,accM:null,live:true}}
  const kd=snapKeyDate(d); const lp=sum(live(DB.production),r=>r.cut_qty-r.fg_qty); const le=sum(live(DB.orders).filter(o=>o.status!=='closed'&&o.cut_qty>0),o=>o.cut_qty-o.fg_qty);
  if(!kd){const a=DB.accwip[DB.accwip.length-1]||{value:0};return {asof:ymd(d>TODAY?TODAY:d),prod:lp,erp:le,acc:a.value,accM:a.month,live:true}}
  const key=ymd(kd), mk=key.slice(0,7), a=DB.accwip.find(x=>x.month===mk);
@@ -696,8 +1063,8 @@ function navCount(k){
    [D][W][M][Y][Custom]   ◀ [dropdowns] ▶ [本期]   [明細][趨勢][比較]
    Flow metrics = SUM within the period. Snapshot metrics = value "As of" the period end. */
 const ST={};
-const S=k=>ST[k]||(ST[k]=Object.assign({pt:'M',anchor:ymd(TODAY),view:'detail',cmp:'prev',cmpAnchor:null,from:ymd(new Date(TODAY.getFullYear(),TODAY.getMonth(),1)),to:ymd(TODAY),from2:'',to2:'',q:'',page:0,cust:'',onlyDiff:false},LS.get('psjerp_nav_'+k,{})));
-const saveNav=k=>{const s=S(k);LS.set('psjerp_nav_'+k,{pt:s.pt,anchor:s.anchor,view:s.view,cmp:s.cmp,from:s.from,to:s.to})};
+const S=k=>ST[k]||(ST[k]=Object.assign({pt:'M',anchor:ymd(TODAY),view:'list',cmp:'prev',cmpAnchor:null,from:ymd(new Date(TODAY.getFullYear(),TODAY.getMonth(),1)),to:ymd(TODAY),from2:'',to2:'',q:'',page:0,cust:'',onlyDiff:false},LS.get('psjerp_nav5_'+k,{})));
+const saveNav=k=>{const s=S(k);LS.set('psjerp_nav5_'+k,{pt:s.pt,anchor:s.anchor,view:s.view,cmp:s.cmp,from:s.from,to:s.to})};
 const WD=()=>LANG===0?['一','二','三','四','五','六','日']:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const MN=m=>LANG===0?(m+1)+'月':LANG===2?['មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា','កក្កដា','សីហា','កញ្ញា','តុលា','វិច្ឆិកា','ធ្នូ'][m]:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m];
 function isoWeek(d){const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()-((x.getDay()+6)%7)+3);const y=x.getFullYear();const j4=new Date(y,0,4);return {y,w:1+Math.round(((x-j4)/864e5-3+((j4.getDay()+6)%7))/7)}}
@@ -759,7 +1126,8 @@ function pnav(k,o={}){
  let h=`<div class="pnav" role="group" aria-label="${tt('期間','Period')}"><div class="pn-row">
  <div class="seg pn-pt">${pts.map(p=>`<button class="${st.pt===p?'on':''}" onclick="navPt('${k}','${p}')">${esc(t(p))}</button>`).join('')}</div>`;
  if(st.pt!=='ALL')h+=`<div class="pn-sel"><button class="icon-btn" aria-label="${tt('上一期','Previous')}" ${canPrev?'':'disabled'} onclick="navShift('${k}',-1)">◀</button>${selectorsHTML(k,st.pt,st.anchor,st)}<button class="icon-btn" aria-label="${tt('下一期','Next')}" ${canNext?'':'disabled'} onclick="navShift('${k}',1)">▶</button><button class="btn sm" onclick="navToday('${k}')">${tt('本期','Current')}</button></div>`;
- if(views)h+=`<div class="seg pn-view">${[['detail',tt('明細','Detail')],['trend',tt('趨勢','Trend')],['compare',tt('比較','Compare')]].map(([v,l])=>`<button class="${st.view===v?'on':''}" onclick="navView('${k}','${v}')">${l}</button>`).join('')}</div>`;
+ const isMY=st.pt==='M'||st.pt==='Y'||st.pt==='ALL';
+ if(views)h+=`<div class="seg pn-view">${(isMY?[['list',st.pt==='M'?tt('月報列表','Monthly list'):tt('年報列表','Yearly list')],['detail',tt('明細','Detail')],['compare',tt('比較','Compare')]]:[['detail',tt('明細','Detail')],['trend',tt('趨勢','Trend')],['compare',tt('比較','Compare')]]).filter(x=>!(st.pt==='ALL'&&x[0]==='compare')).map(([v,l])=>`<button class="${st.view===v?'on':''}" onclick="navView('${k}','${v}')">${l}</button>`).join('')}</div>`;
  h+=`</div><div class="pn-label"><b>${esc(periodLabel(st.pt,R))}</b>${o.snapshot&&st.pt!=='ALL'?` · <span class="st info">As of ${esc(o.asof||ymd(asOfDate(R)))}</span> <span class="small muted">${tt('時點值，不加總','point-in-time, not summed')}</span>`:st.pt!=='ALL'?` <span class="small muted">${tt('期間累計','period total')}</span>`:''}</div>`;
  if(views&&st.view==='compare'){const C=cmpRange(st);
   h+=`<div class="pn-row pn-cmp"><span class="small muted">${tt('對照','Compare with')}</span><div class="seg">${[['prev',tt('上一期','Previous')],['yoy',tt('去年同期','Same period last year')],['custom',tt('自選','Custom')]].map(([v,l])=>`<button class="${st.cmp===v?'on':''}" onclick="navCmp('${k}','${v}')">${l}</button>`).join('')}</div>
@@ -767,7 +1135,8 @@ function pnav(k,o={}){
  return h+`</div>`;
 }
 function navDone(k){S(k).page=0;saveNav(k);rerender()}
-function navPt(k,p){const st=S(k);if(p==='C'&&st.pt!=='C'&&st.pt!=='ALL'){const R=rangeOf(st);st.from=ymd(R.from);st.to=ymd(R.to>TODAY?TODAY:R.to)}st.pt=p;st.cmpAnchor=null;navDone(k)}
+function navPt(k,p){const st=S(k);if(p==='C'&&st.pt!=='C'&&st.pt!=='ALL'){const R=rangeOf(st);st.from=ymd(R.from);st.to=ymd(R.to>TODAY?TODAY:R.to)}st.pt=p;st.cmpAnchor=null;
+ if(p==='M'||p==='Y'){if(st.view==='trend'||st.view==='detail')st.view='list'}else if(p==='ALL'){st.view=st.view==='compare'?'list':st.view}else if(st.view==='list')st.view='detail';navDone(k)}
 function navSet(k,v){if(!v)return;S(k).anchor=v;navDone(k)}
 function navSetC(k,v){if(!v)return;S(k).cmpAnchor=v;navDone(k)}
 function navShift(k,n){const st=S(k);if(st.pt==='C'){const R=rangeOf(st);const span=Math.round((R.to-R.from)/864e5)+1;st.from=ymd(addD(R.from,n*span));st.to=ymd(addD(R.to,n*span))}else st.anchor=ymd(shiftDate(st.pt,parseD(st.anchor)||TODAY,n));navDone(k)}
@@ -804,64 +1173,175 @@ function innerBuckets(pt,R){
  return out;
 }
 
-/* =================== metric registry per module =================== */
+
+/* =================== metric registry (v0.5: grouped, fast, real-data aware) ===================
+   Each metric reads one source (src) and aggregates a group of rows (g).  f(R) is derived.
+   Metrics without src (demo-only production / factory cost / snapshots) keep f(R). */
 const fcTot=r=>r.payroll+r.ot+r.electricity+r.water+r.repair+r.spare+r.consumables+r.depreciation+r.other;
-function fcIn(R){ // monthly Account Flow rows, prorated by days when the period is shorter than a month
+function fcIn(R){
  let tot=0,pcs=0,smv=0;
  live(DB.factorycost).forEach(r=>{const [y,m]=r.month.split('-').map(Number);const ms=new Date(y,m-1,1),me=new Date(y,m,0);
   const f=new Date(Math.max(ms,R.from)),to=new Date(Math.min(me,R.to));if(f>to)return;const share=(Math.round((to-f)/864e5)+1)/me.getDate();
   tot+=fcTot(r)*share;pcs+=r.prod_qty*share;smv+=r.smv_min*share});
  return {tot,pcs,smv};
 }
-const flowOrders=R=>live(DB.orders).filter(o=>inR(o.order_date,R));
+const SRCS={
+ orders:{rows:()=>live(DB.orders),date:r=>r.order_date,year:r=>r.order_year},
+ fg:{rows:()=>live(DB.fg),date:r=>r.fg_date},
+ ship:{rows:()=>live(DB.shipping),date:r=>r.ship_date},
+ bom:{rows:()=>live(DB.bom),date:r=>r.order_date},
+ pur:{rows:()=>live(DB.purchase),date:r=>r.purchase_date},
+ recv:{rows:()=>live(DB.receiving),date:r=>r.recv_date},
+};
+const GC=new Map();
+function rowsIn(src,R){const S2=SRCS[src];if(R.all)return S2.rows();return S2.rows().filter(r=>{const d=S2.date(r);if(d)return inR(d,R);return S2.year?yearCovers(S2.year(r),R):false})}
+function groupBy(src,unit){const key=src+'|'+unit;if(GC.has(key))return GC.get(key);const S2=SRCS[src];const m=new Map();
+ for(const r of S2.rows()){const d=S2.date(r);let k=null;if(d)k=unit==='Y'?d.slice(0,4):d.slice(0,7);else if(S2.year&&S2.year(r))k=unit==='Y'?String(S2.year(r)):'Y'+S2.year(r);if(!k)continue;let a=m.get(k);if(!a){a=[];m.set(k,a)}a.push(r)}
+ GC.set(key,m);return m}
+const flowOrders=R=>rowsIn('orders',R);
+const uniq=(rows,f)=>new Set(rows.map(f).filter(Boolean)).size;
+const topOf=(rows,kf,vf)=>{const m=new Map();rows.forEach(r=>{const k=kf(r);if(k)m.set(k,(m.get(k)||0)+(vf?vf(r):1))});let best=null,bv=0,tot=0;m.forEach((v,k)=>{tot+=v;if(v>bv){bv=v;best=k}});return best?best+' '+fmt(tot?bv/tot*100:0,0)+'%':'—'};
+const M=(o)=>o;   // marker for readability
 const PM={
  dashboard:{metrics:[
-  {l:()=>tt('訂單量','Order qty'),f:R=>sum(flowOrders(R),'qty')},
-  {l:()=>tt('裁剪','Cut'),f:R=>sum(prodRange(R),'cut')},
-  {l:()=>tt('車縫','Sewn'),f:R=>sum(prodRange(R),'sewn')},
-  {l:()=>tt('成品入庫','FG in'),f:R=>sum(live(DB.fg).filter(g=>inR(g.fg_date,R)),'erp_qty')},
-  {l:()=>tt('出貨','Shipped'),f:R=>sum(live(DB.shipping).filter(s=>inR(s.ship_date,R)),'qty'),p:1},
-  {l:()=>tt('製造費用','Factory cost'),f:R=>fcIn(R).tot,ty:'money'}]},
- orders:{metrics:[{l:()=>tt('訂單數','Orders'),f:R=>flowOrders(R).length},{l:()=>t('order_qty'),f:R=>sum(flowOrders(R),'qty'),p:1},{l:()=>t('amount'),f:R=>sum(flowOrders(R),o=>o.qty*o.price),ty:'money'},{l:()=>tt('平均單價','Avg price'),f:R=>{const o=flowOrders(R);const q=sum(o,'qty');return q?sum(o,x=>x.qty*x.price)/q:null},ty:'money3'}]},
- bom:{metrics:[{l:()=>tt('BOM 訂單','Orders w/ BOM'),f:R=>new Set(live(DB.bom).filter(b=>inR(b.order_date,R)).map(b=>b.od_no)).size},{l:()=>tt('用料列','Lines'),f:R=>live(DB.bom).filter(b=>inR(b.order_date,R)).length},{l:()=>t('est_cost'),f:R=>sum(live(DB.bom).filter(b=>inR(b.order_date,R)),'est_cost'),ty:'money',p:1}]},
- purchase:{metrics:[{l:()=>tt('採購列','Lines'),f:R=>live(DB.purchase).filter(p=>inR(p.purchase_date,R)).length},{l:()=>tt('採購金額','Purchase value'),f:R=>sum(live(DB.purchase).filter(p=>inR(p.purchase_date,R)),p=>p.qty*p.price),ty:'money',p:1},{l:()=>tt('未交金額','Outstanding value'),f:R=>sum(live(DB.purchase).filter(p=>inR(p.purchase_date,R)),p=>p.outstanding*p.price),ty:'money'}]},
- receiving:{metrics:[{l:()=>tt('收貨筆數','Receipts'),f:R=>live(DB.receiving).filter(r=>inR(r.recv_date,R)).length,p:1},{l:()=>tt('布料收貨(碼)','Fabric received (yd)'),f:R=>sum(live(DB.receiving).filter(r=>inR(r.recv_date,R)&&r.unit==='YD'),'qty')},{l:()=>tt('不合格','Failed'),f:R=>live(DB.receiving).filter(r=>inR(r.recv_date,R)&&r.result==='fail').length},{l:()=>tt('平均瑕疵%','Avg defect %'),f:R=>{const x=live(DB.receiving).filter(r=>inR(r.recv_date,R));return x.length?sum(x,'defect')/x.length:null},ty:'n2'}]},
- fabric:{snap:1,metrics:[{l:()=>tt('ERP 帳面(碼)','ERP balance (yd)'),f:R=>sum(snapRows('fabric',asOfDate(R)).rows,'balance'),p:1},{l:()=>t('available'),f:R=>sum(snapRows('fabric',asOfDate(R)).rows,'available')},{l:()=>tt('帳實差(碼)','Book vs count (yd)'),f:R=>{const r=snapRows('fabric',asOfDate(R)).rows;return sum(r,'wh_count')-sum(r,'balance')}},{l:()=>tt('缸數','Lots'),f:R=>snapRows('fabric',asOfDate(R)).rows.length}]},
- accessories:{snap:1,metrics:[{l:()=>tt('品項','Items'),f:R=>snapRows('accessories',asOfDate(R)).rows.length},{l:()=>t('balance'),f:R=>sum(snapRows('accessories',asOfDate(R)).rows,'balance'),p:1}]},
- production:{metrics:[{l:()=>t('cut_qty'),f:R=>sum(prodRange(R),'cut')},{l:()=>t('sewn'),f:R=>sum(prodRange(R),'sewn'),p:1},{l:()=>t('packed'),f:R=>sum(prodRange(R),'packed')},{l:()=>tt('加權效率','Weighted eff.'),f:R=>{const p=prodRange(R);const a=sum(p,'avail');return a?sum(p,'std')/a*100:null},ty:'pct'}]},
- wip:{snap:1,metrics:[{l:()=>tt('生產 WIP(件)','Production WIP (pcs)'),f:R=>wipAt(asOfDate(R)).prod,p:1},{l:()=>tt('ERP 推算 WIP(件)','ERP-derived WIP (pcs)'),f:R=>wipAt(asOfDate(R)).erp},{l:()=>tt('會計 WIP(金額)','Accounting WIP (value)'),f:R=>wipAt(asOfDate(R)).acc,ty:'money'}]},
- 'finished-goods':{metrics:[{l:()=>'ERP FG',f:R=>sum(live(DB.fg).filter(g=>inR(g.fg_date,R)),'erp_qty'),p:1},{l:()=>'ACC FG',f:R=>sum(live(DB.fg).filter(g=>inR(g.fg_date,R)),g=>g.acc_qty??0)},{l:()=>'PROD FG',f:R=>sum(live(DB.fg).filter(g=>inR(g.fg_date,R)),'prod_qty')},{l:()=>'ACC − ERP',f:R=>{const g=live(DB.fg).filter(x=>inR(x.fg_date,R)&&x.acc_qty!=null);return sum(g,'acc_qty')-sum(g,'erp_qty')},ty:'diff'}]},
- shipping:{metrics:[{l:()=>tt('出貨單','Shipments'),f:R=>live(DB.shipping).filter(s=>inR(s.ship_date,R)).length},{l:()=>tt('出貨件數','Pieces'),f:R=>sum(live(DB.shipping).filter(s=>inR(s.ship_date,R)),'qty'),p:1},{l:()=>t('amount'),f:R=>sum(live(DB.shipping).filter(s=>inR(s.ship_date,R)),'amount'),ty:'money'}]},
- 'factory-cost':{metrics:[{l:()=>tt('製造費用','Factory cost'),f:R=>fcIn(R).tot,ty:'money',p:1},{l:()=>tt('產量(件)','Pieces'),f:R=>fcIn(R).pcs},{l:()=>tt('製費/件','Cost / pc'),f:R=>{const x=fcIn(R);return x.pcs?x.tot/x.pcs:null},ty:'money3'},{l:()=>tt('製費/SMV分','Cost / SMV min'),f:R=>{const x=fcIn(R);return x.smv?x.tot/x.smv:null},ty:'money4'}]},
- costing:{metrics:[{l:()=>tt('營收','Revenue'),f:R=>costAgg(R).rev,ty:'money'},{l:()=>tt('預估成本','Est. cost'),f:R=>costAgg(R).cost,ty:'money'},{l:()=>tt('預估毛利','Est. margin'),f:R=>costAgg(R).rev-costAgg(R).cost,ty:'money',p:1},{l:()=>tt('毛利率','Margin %'),f:R=>{const c=costAgg(R);return c.rev?(c.rev-c.cost)/c.rev*100:null},ty:'pct'}]},
+  M({l:()=>tt('訂單量','Order qty'),src:'orders',g:r=>sum(r,'qty'),add:1}),
+  M({l:()=>tt('裁剪','Cut'),f:R=>sum(prodRange(R),'cut'),demo:1,add:1}),
+  M({l:()=>tt('車縫','Sewn'),f:R=>sum(prodRange(R),'sewn'),demo:1,add:1}),
+  M({l:()=>tt('成品入庫','FG in'),src:'fg',g:r=>sum(r,'erp_qty'),add:1}),
+  M({l:()=>tt('出貨','Shipped'),src:'ship',g:r=>sum(r,'qty'),p:1,add:1}),
+  M({l:()=>tt('出貨金額','Shipped value'),src:'ship',g:r=>sum(r,'amount'),ty:'money',add:1}),
+  M({l:()=>tt('BOM 訂單','BOM orders'),src:'bom',g:r=>uniq(r,x=>x.my_no),add:1}),
+  M({l:()=>tt('製造費用','Factory cost'),f:R=>fcIn(R).tot,ty:'money',demo:1,add:1})]},
+ orders:{metrics:[
+  M({l:()=>tt('訂單數','Orders'),src:'orders',g:r=>uniq(r,x=>x.my_no),add:1}),
+  M({l:()=>tt('款式數','Styles'),src:'orders',g:r=>uniq(r,x=>x.style||x.style_name)}),
+  M({l:()=>t('order_qty'),src:'orders',g:r=>sum(r,'qty'),p:1,add:1}),
+  M({l:()=>t('fg_qty'),src:'orders',g:r=>sum(r,'fg_qty'),add:1}),
+  M({l:()=>t('ship_qty'),src:'orders',g:r=>sum(r,'ship_qty'),add:1}),
+  M({l:()=>tt('出貨率','Shipped %'),src:'orders',g:r=>{const q=sum(r,'qty');return q?sum(r,'ship_qty')/q*100:null},ty:'pct'}),
+  M({l:()=>t('amount'),src:'orders',g:r=>r.some(x=>x.price)?sum(r,x=>x.qty*(x.price||0)):null,ty:'money',add:1,need:r=>r.some(x=>x.price)})]},
+ bom:{metrics:[
+  M({l:()=>tt('訂單數','Orders'),src:'bom',g:r=>uniq(r,x=>x.my_no),p:1,add:1}),
+  M({l:()=>tt('客戶數','Customers'),src:'bom',g:r=>uniq(r,x=>x.cust)}),
+  M({l:()=>tt('主料列','Main lines'),src:'bom',g:r=>r.filter(x=>x.type==='main').length,add:1}),
+  M({l:()=>tt('副料列','Trim lines'),src:'bom',g:r=>r.filter(x=>x.type!=='main').length,add:1}),
+  M({l:()=>tt('主料用量(碼)','Main fabric (yd)'),src:'bom',g:r=>sum(r.filter(x=>x.type==='main'&&/YD/i.test(x.unit)),'total_use'),add:1,ty:'n0'}),
+  M({l:()=>t('est_cost'),src:'bom',g:r=>r.some(x=>x.est_cost)?sum(r,'est_cost'):null,ty:'money',add:1,need:r=>r.some(x=>x.est_cost)})]},
+ purchase:{metrics:[
+  M({l:()=>tt('採購列','Lines'),src:'pur',g:r=>r.length,add:1}),
+  M({l:()=>tt('廠商數','Suppliers'),src:'pur',g:r=>uniq(r,x=>x.supplier)}),
+  M({l:()=>tt('採購金額','Purchase value'),src:'pur',g:r=>sum(r,x=>x.qty*x.price),ty:'money',p:1,add:1}),
+  M({l:()=>tt('未交金額','Outstanding value'),src:'pur',g:r=>sum(r,x=>(x.outstanding||0)*x.price),ty:'money',add:1})]},
+ receiving:{metrics:[
+  M({l:()=>tt('收貨筆數','Receipts'),src:'recv',g:r=>r.length,p:1,add:1}),
+  M({l:()=>tt('布料收貨(碼)','Fabric received (yd)'),src:'recv',g:r=>sum(r.filter(x=>x.unit==='YD'),'qty'),add:1}),
+  M({l:()=>tt('不合格','Failed'),src:'recv',g:r=>r.filter(x=>x.result==='fail').length,add:1}),
+  M({l:()=>tt('平均瑕疵%','Avg defect %'),src:'recv',g:r=>r.length?sum(r,'defect')/r.length:null,ty:'n2'})]},
+ fabric:{snap:1,metrics:[
+  M({l:()=>tt('料號數','Items'),f:R=>uniq(snapRows('fabric',asOfDate(R)).rows,x=>x.material_no+'|'+x.color)}),
+  M({l:()=>tt('庫存量','Stock qty'),f:R=>sum(snapRows('fabric',asOfDate(R)).rows,'balance'),p:1,ty:'n2'}),
+  M({l:()=>tt('負庫存列','Negative lines'),f:R=>snapRows('fabric',asOfDate(R)).rows.filter(x=>x.balance<0).length}),
+  M({l:()=>tt('帳實差(碼)','Book vs count (yd)'),f:R=>{const r=snapRows('fabric',asOfDate(R)).rows.filter(x=>x.wh_count!=null);return r.length?sum(r,'wh_count')-sum(r,'balance'):null},needF:()=>live(DB.fabric).some(x=>x.wh_count!=null)})]},
+ accessories:{snap:1,metrics:[
+  M({l:()=>tt('品項','Items'),f:R=>snapRows('accessories',asOfDate(R)).rows.length}),
+  M({l:()=>t('balance'),f:R=>sum(snapRows('accessories',asOfDate(R)).rows,'balance'),p:1})]},
+ production:{metrics:[
+  M({l:()=>t('cut_qty'),f:R=>sum(prodRange(R),'cut'),demo:1,add:1}),M({l:()=>t('sewn'),f:R=>sum(prodRange(R),'sewn'),p:1,demo:1,add:1}),
+  M({l:()=>t('packed'),f:R=>sum(prodRange(R),'packed'),demo:1,add:1}),M({l:()=>tt('加權效率','Weighted eff.'),f:R=>{const p=prodRange(R);const a=sum(p,'avail');return a?sum(p,'std')/a*100:null},ty:'pct',demo:1})]},
+ wip:{snap:1,metrics:[
+  M({l:()=>tt('生產 WIP(件)','Production WIP (pcs)'),f:R=>wipAt(asOfDate(R)).prod,p:1,demo:1}),
+  M({l:()=>tt('ERP 推算 WIP(件)','ERP-derived WIP (pcs)'),f:R=>wipAt(asOfDate(R)).erp,demo:1}),
+  M({l:()=>tt('會計 WIP(金額)','Accounting WIP (value)'),f:R=>wipAt(asOfDate(R)).acc,ty:'money',demo:1})]},
+ 'finished-goods':{metrics:[
+  M({l:()=>tt('入庫筆數','Records'),src:'fg',g:r=>r.length,add:1}),
+  M({l:()=>tt('訂單數','Orders'),src:'fg',g:r=>uniq(r,x=>x.my_no)}),
+  M({l:()=>tt('客戶數','Customers'),src:'fg',g:r=>uniq(r,x=>x.cust)}),
+  M({l:()=>'ERP '+tt('入庫件數','FG pcs'),src:'fg',g:r=>sum(r,'erp_qty'),p:1,add:1}),
+  M({l:()=>tt('主要客戶','Top customer'),src:'fg',g:r=>topOf(r,x=>x.cust,x=>x.erp_qty),ty:'text'}),
+  M({l:()=>'ACC FG',src:'fg',g:r=>{const a=r.filter(x=>x.acc_qty!=null);return a.length?sum(a,'acc_qty'):null},add:1,need:r=>r.some(x=>x.acc_qty!=null)}),
+  M({l:()=>'PROD FG',src:'fg',g:r=>{const a=r.filter(x=>x.prod_qty!=null);return a.length?sum(a,'prod_qty'):null},add:1,need:r=>r.some(x=>x.prod_qty!=null)}),
+  M({l:()=>'ACC − ERP',src:'fg',g:r=>{const a=r.filter(x=>x.acc_qty!=null);return a.length?sum(a,'acc_qty')-sum(a,'erp_qty'):null},ty:'diff',add:1,need:r=>r.some(x=>x.acc_qty!=null)})]},
+ shipping:{metrics:[
+  M({l:()=>tt('出貨單','Shipments'),src:'ship',g:r=>uniq(r,x=>x.bl_no),add:1}),
+  M({l:()=>tt('出貨件數','Pieces'),src:'ship',g:r=>sum(r,'qty'),p:1,add:1}),
+  M({l:()=>t('amount'),src:'ship',g:r=>sum(r,'amount'),ty:'money',add:1}),
+  M({l:()=>tt('客戶數','Customers'),src:'ship',g:r=>uniq(r,x=>x.cust)})]},
+ 'factory-cost':{metrics:[
+  M({l:()=>tt('製造費用','Factory cost'),f:R=>fcIn(R).tot,ty:'money',p:1,demo:1,add:1}),M({l:()=>tt('產量(件)','Pieces'),f:R=>fcIn(R).pcs,demo:1,add:1}),
+  M({l:()=>tt('製費/件','Cost / pc'),f:R=>{const x=fcIn(R);return x.pcs?x.tot/x.pcs:null},ty:'money3',demo:1}),M({l:()=>tt('製費/SMV分','Cost / SMV min'),f:R=>{const x=fcIn(R);return x.smv?x.tot/x.smv:null},ty:'money4',demo:1})]},
+ costing:{metrics:[
+  M({l:()=>tt('營收','Revenue'),f:R=>costAgg(R).rev,ty:'money',add:1,needF:()=>DB.orders.some(o=>o.price&&o.smv)}),M({l:()=>tt('預估成本','Est. cost'),f:R=>costAgg(R).cost,ty:'money',add:1,needF:()=>DB.orders.some(o=>o.price&&o.smv)}),
+  M({l:()=>tt('預估毛利','Est. margin'),f:R=>costAgg(R).rev-costAgg(R).cost,ty:'money',p:1,add:1,needF:()=>DB.orders.some(o=>o.price&&o.smv)}),M({l:()=>tt('毛利率','Margin %'),f:R=>{const c=costAgg(R);return c.rev?(c.rev-c.cost)/c.rev*100:null},ty:'pct',needF:()=>DB.orders.some(o=>o.price&&o.smv)})]},
 };
 PM.reports=PM.dashboard;
+Object.values(PM).forEach(P=>P.metrics.forEach(m=>{if(m.src&&!m.f)m.f=R=>m.g(rowsIn(m.src,R))}));
+/* which metrics have data in the current store */
+function activeMetrics(k){const P=PM[k];if(!P)return [];return P.metrics.filter(m=>{
+ if(m.demo&&!isDemo())return false; if(m.needF&&!m.needF())return false;
+ if(m.src){const rows=SRCS[m.src].rows();if(!rows.length)return false;if(m.need&&!m.need(rows))return false}
+ if(P.snap&&!m.demo&&!isDemo()){const ds=k==='accessories'?'accessories':'fabric';if(!live(DB[ds]).length&&!Object.keys(DB[ds==='fabric'?'fabsnaps':'accsnaps']||{}).length)return false}
+ return true})}
 const COSTC=new Map();
 function costAgg(R){const key=ymd(R.from)+ymd(R.to)+(DB.audit.length);if(COSTC.has(key))return COSTC.get(key);const ok=flowOrders(R).map(o=>({o,c:costOrder(o,'latest')})).filter(x=>x.c.total!=null);const r={rev:sum(ok,x=>x.o.qty*x.o.price),cost:sum(ok,x=>x.o.qty*x.c.total)};COSTC.set(key,r);return r}
-function fmtM(v,ty){if(v==null||isNaN(v))return '—';if(ty==='money')return money(v,0);if(ty==='money3')return money(v,3);if(ty==='money4')return money(v,4);if(ty==='pct')return fmt(v,1)+'%';if(ty==='n2')return fmt(v,2);if(ty==='diff')return (v>0?'+':'')+fmt(v);return fmt(v)}
+function fmtM(v,ty){if(ty==='text')return esc(v==null?'—':v);if(v==null||isNaN(v))return '—';if(ty==='money')return money(v,0);if(ty==='money3')return money(v,3);if(ty==='money4')return money(v,4);if(ty==='pct')return fmt(v,1)+'%';if(ty==='n2')return fmt(v,2);if(ty==='diff')return (v>0?'+':'')+fmt(v);return fmt(v)}
+
+/* =================== 月報 / 年報 list (sewing 月年趨勢 style) =================== */
+const keyRange=k=>{if(/^\d{4}$/.test(k))return {from:new Date(+k,0,1),to:new Date(+k,11,31)};if(/^Y\d{4}$/.test(k)){const y=+k.slice(1);return {from:new Date(y,0,1),to:new Date(y,11,31),yearOnly:1}}const [y,m]=k.split('-').map(Number);return {from:new Date(y,m-1,1),to:new Date(y,m,0)}};
+const keySort=k=>/^Y\d{4}$/.test(k)?k.slice(1)+'-00':k;
+function snapKeys(k,unit){
+ if(isDemo()){const out=[];for(let d=new Date(DATA_START);d<=TODAY;d=new Date(d.getFullYear(),d.getMonth()+1,1)){const key=unit==='Y'?String(d.getFullYear()):monthKey(d);if(!out.includes(key))out.push(key)}return out}
+ const ds=k==='accessories'?'accessories':'fabric', sn=ds==='fabric'?'fabsnaps':'accsnaps';const dates=Object.keys(DB[sn]||{});if(DB.asof&&DB.asof[ds])dates.push(DB.asof[ds]);
+ return [...new Set(dates.map(d=>unit==='Y'?d.slice(0,4):d.slice(0,7)))];
+}
+function listRows(k,unit){
+ const P=PM[k], ms=activeMetrics(k); const keys=new Set();
+ if(P.snap)snapKeys(k,unit).forEach(x=>keys.add(x));
+ else{ms.forEach(m=>{if(m.src)groupBy(m.src,unit).forEach((v,key)=>keys.add(key))});
+  if(isDemo()&&ms.some(m=>!m.src))for(let d=new Date(DATA_START);d<=TODAY;d=new Date(d.getFullYear(),d.getMonth()+1,1))keys.add(unit==='Y'?String(d.getFullYear()):monthKey(d))}
+ const ks=[...keys].sort((a,b)=>keySort(b)<keySort(a)?-1:1);
+ return {ms,rows:ks.map(key=>{const R=keyRange(key);return {key,R,v:ms.map(m=>m.src?m.g((groupBy(m.src,unit).get(key))||[]):m.f(P.snap?{from:R.from,to:R.to>TODAY?TODAY:R.to}:R))}})};
+}
+function renderList(k){
+ const st=S(k), unit=(st.pt==='Y'||st.pt==='ALL')?'Y':'M', P=PM[k]; const {ms,rows}=listRows(k,unit);
+ if(!ms.length||!rows.length)return isDemo()?`<div class="note">${esc(t('no_data'))}</div>`:needHTML(k);
+ const R=rangeOf(st); const selKey=unit==='Y'?String(R.from.getFullYear()):monthKey(R.from);
+ let pm=ms.find(m=>m.p)||ms[0], pi=ms.indexOf(pm);
+ {const ch=rows.filter(r=>!/^Y/.test(r.key)),nz=i=>ch.filter(r=>(+r.v[i]||0)>0).length;if(ch.length&&!nz(pi)){let bi=-1,bn=0;ms.forEach((m,i)=>{if(m.ty==='pct'||m.ty==='text')return;const n=nz(i);if(n>bn){bn=n;bi=i}});if(bi>=0){pi=bi;pm=ms[bi]}}}
+ let sel=rows.find(r=>r.key===selKey); const fb=!sel; if(!sel)sel=rows[0];
+ let h=fb?`<p class="note info small" style="margin:0 0 10px">${tt('所選期間 ','The selected period ')}${esc(selKey)}${tt(' 沒有資料，下面卡片顯示最近有資料的 ',' has no data; the cards show the latest period with data, ')}${esc(/^Y/.test(sel.key)?sel.key.slice(1):sel.key)}。</p>`:'';
+ h+=`<div class="kpis">${ms.slice(0,6).map((m,i)=>kpi(esc(m.l()),fmtM(sel.v[i],m.ty),'',(i===0?(/^Y/.test(sel.key)?sel.key.slice(1):sel.key):'')+(P.snap?' · As of '+ymd(asOfDate({to:keyRange(sel.key).to})):''))).join('')}</div>`;
+ const chron=rows.filter(r=>!/^Y/.test(r.key)).slice().reverse().slice(-36);
+ if(chron.length>1)h+=`<div class="panel mt"><h2>${esc(pm.l())} · ${unit==='Y'?tt('年報','by year'):tt('月報','by month')}</h2><p class="hint">${P.snap?tt('每期期末時點值','period-end values'):tt('每期累計','period totals')} · ${tt('點長條選該期，點表格列看明細','tap a bar to select, tap a row for detail')}</p>${barChart(chron.map(r=>Math.max(0,+r.v[pi]||0)),chron.map(r=>unit==='Y'?r.key:r.key.slice(2)),pm.l(),{full:1,hl:chron.map(r=>r.key===selKey),drill:chron.map(r=>`navSet('${k}','${ymd(r.R.from)}')`)})}</div>`;
+ const addable=ms.map(m=>m.add&&m.ty!=='pct'&&m.ty!=='text');
+ h+=`<div class="panel mt list-panel"><h2><span class="bar-mark"></span>${unit==='Y'?tt('年別報表','Yearly report'):tt('月別報表','Monthly report')}</h2>
+ <div class="tbl-wrap"><table class="t list"><thead><tr><th>${tt('期間','Period')}</th>${ms.map(m=>`<th class="r">${esc(m.l())}</th>`).join('')}</tr></thead><tbody>
+ ${rows.map(r=>`<tr class="click ${r.key===selKey?'sel':''}" onclick="drill('${k}','${unit}','${ymd(r.R.from)}')"><td class="per">${/^Y/.test(r.key)?r.key.slice(1)+` <span class="small muted">${tt('（無月份）','(no month)')}</span>`:esc(r.key)}${P.snap?` <span class="small muted">As of ${esc(ymd(asOfDate({to:r.R.to})))}</span>`:''}</td>${r.v.map((v,i)=>`<td class="r ${i===pi?'pm':''}">${ms[i].ty==='pct'&&v!=null?`<span class="pill">${fmt(v,1)}%</span>`:fmtM(v,ms[i].ty)}</td>`).join('')}</tr>`).join('')}</tbody>
+ ${P.snap?'':`<tfoot><tr><td>${esc(t('total'))}</td>${ms.map((m,i)=>`<td class="r">${addable[i]?fmtM(sum(rows,r=>+r.v[i]||0),m.ty):''}</td>`).join('')}</tr></tfoot>`}</table></div>
+ ${rows.some(r=>/^Y/.test(r.key))?`<p class="small muted" style="margin:8px 0 0">${tt('「無月份」：W_COD690 訂單統計表沒有接單日，只能算進年報；匯入 W_COD700 訂單總表（或 BOM）後會自動分到月份。','"No month": W_COD690 has no order date, so these rows count in the yearly report only; importing W_COD700 (or BOM) assigns them to months automatically.')}</p>`:''}</div>`;
+ return h;
+}
 
 /* =================== Trend & Compare views =================== */
 function renderTrend(k){
- const st=S(k), P=PM[k], B=subBuckets(st); const pm=P.metrics.find(m=>m.p)||P.metrics[0];
- const rows=B.map(b=>({b,v:P.metrics.map(m=>m.f(P.snap?{from:b.R.from,to:b.R.to}:b.R))}));
- const pi=P.metrics.indexOf(pm);
- let h=`<div class="panel"><h2>${esc(pm.l())} · ${esc(st.pt==='D'?tt('本月每日','daily, this month'):st.pt==='W'?tt('全年每週','weekly, this year'):st.pt==='M'?tt('全年每月','monthly, this year'):tt('每年','by year'))}</h2><p class="hint">${P.snap?tt('每期期末時點值（As of 期末）','Value as of each period end'):tt('每期累計','Total per period')} · ${tt('點一列或一根長條看該期明細','tap a row or bar to open that period')}</p>
+ const st=S(k), ms=activeMetrics(k), B=subBuckets(st); if(!ms.length)return needHTML(k); const P=PM[k]; const pm=ms.find(m=>m.p)||ms[0];
+ const rows=B.map(b=>({b,v:ms.map(m=>m.f(P.snap?{from:b.R.from,to:b.R.to}:b.R))}));
+ const pi=ms.indexOf(pm);
+ let h=`<div class="panel"><h2>${esc(pm.l())} · ${esc(st.pt==='D'?tt('本月每日','daily, this month'):st.pt==='W'?tt('全年每週','weekly, this year'):tt('期間內','within period'))}</h2><p class="hint">${tt('點一列或一根長條看該期明細','tap a row or bar to open that period')}</p>
  ${barChart(rows.map(r=>Math.max(0,r.v[pi]||0)),rows.map(r=>r.b.l.length>7?r.b.l.slice(-5):r.b.l),pm.l(),{full:1,drill:rows.map(r=>`drill('${k}','${r.b.pt}','${r.b.a}')`),hl:rows.map(r=>r.b.on)})}</div>`;
- h+=`<div class="tbl-wrap mt"><table class="t cards"><thead><tr><th>${tt('期間','Period')}</th>${P.metrics.map(m=>`<th class="r">${esc(m.l())}</th>`).join('')}<th></th></tr></thead><tbody>
- ${rows.slice().reverse().map(r=>`<tr class="click ${r.b.on?'sel':''}" onclick="drill('${k}','${r.b.pt}','${r.b.a}')"><td class="lead mono" data-l="">${esc(r.b.l)}${P.snap?` <span class="small muted">As of ${esc(ymd(asOfDate(r.b.R)))}</span>`:''}</td>${r.v.map((v,i)=>`<td class="r" data-l="${esc(P.metrics[i].l())}">${fmtM(v,P.metrics[i].ty)}</td>`).join('')}<td class="r" data-l="">→</td></tr>`).join('')}</tbody>
- ${P.snap?'':`<tfoot><tr><td>${esc(t('total'))}</td>${P.metrics.map((m,i)=>`<td class="r">${m.ty==='pct'||m.ty==='money3'||m.ty==='money4'||m.ty==='n2'?'':fmtM(sum(rows,r=>r.v[i]||0),m.ty)}</td>`).join('')}<td></td></tr></tfoot>`}</table></div>`;
+ h+=`<div class="tbl-wrap mt"><table class="t list"><thead><tr><th>${tt('期間','Period')}</th>${ms.map(m=>`<th class="r">${esc(m.l())}</th>`).join('')}</tr></thead><tbody>
+ ${rows.slice().reverse().map(r=>`<tr class="click ${r.b.on?'sel':''}" onclick="drill('${k}','${r.b.pt}','${r.b.a}')"><td class="per">${esc(r.b.l)}</td>${r.v.map((v,i)=>`<td class="r ${i===pi?'pm':''}">${fmtM(v,ms[i].ty)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
  return h;
 }
 function renderCompareView(k){
- const st=S(k), P=PM[k], R=rangeOf(st), C=cmpRange(st);
+ const st=S(k), ms=activeMetrics(k); if(!ms.length)return needHTML(k); const P=PM[k], R=rangeOf(st), C=cmpRange(st);
  const Rc=P.snap?R:{from:R.from,to:R.to>TODAY?TODAY:R.to};
- const lenC=Math.round((Math.min(R.to,TODAY)-R.from)/864e5); const Cc=P.snap?C:{from:C.from,to:R.to>TODAY?addD(C.from,lenC):C.to}; // like-for-like when current period is not finished
- const vals=P.metrics.map(m=>[m.f(Rc),m.f(Cc)]);
+ const lenC=Math.round((Math.min(R.to,TODAY)-R.from)/864e5); const Cc=P.snap?C:{from:C.from,to:R.to>TODAY?addD(C.from,lenC):C.to};
+ const vals=ms.map(m=>[m.f(Rc),m.f(Cc)]);
  let h=`<div class="tbl-wrap"><table class="t cards"><thead><tr><th>${tt('指標','Metric')}</th><th class="r">${tt('本期','Current')}<br><span class="small muted">${esc(periodLabel(st.pt,R))}</span></th><th class="r">${tt('對照期','Comparison')}<br><span class="small muted">${esc(periodLabel(st.pt,C))}</span></th><th class="r">${esc(t('difference'))}</th><th class="r">${tt('差異%','Diff %')}</th></tr></thead><tbody>
- ${P.metrics.map((m,i)=>{const [a,b]=vals[i];const d=a!=null&&b!=null?a-b:null;const p=d!=null&&b?d/Math.abs(b)*100:null;
+ ${ms.map((m,i)=>{const [a,b]=vals[i];if(m.ty==='text')return `<tr><td class="lead" data-l="">${esc(m.l())}</td><td class="r" data-l="">${fmtM(a,'text')}</td><td class="r" data-l="">${fmtM(b,'text')}</td><td></td><td></td></tr>`;const d=a!=null&&b!=null?a-b:null;const p=d!=null&&b?d/Math.abs(b)*100:null;
   return `<tr><td class="lead" data-l="">${esc(m.l())}</td><td class="r" data-l="${tt('本期','Current')}"><b>${fmtM(a,m.ty)}</b></td><td class="r" data-l="${tt('對照期','Comparison')}">${fmtM(b,m.ty)}</td><td class="r" data-l="${esc(t('difference'))}">${d==null?'—':`<b class="${d<0?'diff-neg':d>0?'diff-pos':''}">${d>0?'+':''}${fmtM(d,m.ty==='diff'?'':m.ty).replace(/^\+/,'')}</b>`}</td><td class="r" data-l="%">${p==null?'—':stChip(p<0?'crit':p>0?'good':'neu',(p>0?'+':'')+fmt(p,1)+'%')}</td></tr>`}).join('')}</tbody></table></div>`;
  if(R.to>TODAY&&!P.snap)h+=`<p class="small muted" style="margin-top:6px">${tt('本期尚未結束：對照期取相同天數比較（至 ','Current period is not finished: the comparison uses the same number of days (to ')}${ymd(Cc.to)}).</p>`;
- const pm=P.metrics.find(m=>m.p)||P.metrics[0];
+ const pm=ms.find(m=>m.p)||ms[0];
  if(P.snap){h+=`<div class="panel mt"><h2>${esc(pm.l())}</h2><p class="hint">As of ${ymd(asOfDate(R))} vs ${ymd(asOfDate(C))}</p>${groupedBars([{l:tt('本期','Current'),v:[pm.f(R)]},{l:tt('對照期','Comparison'),v:[pm.f(C)]}],[pm.l()])}</div>`;return h}
  const ib=innerBuckets(st.pt,R), ic=innerBuckets(st.pt,C); const n=Math.max(ib.length,ic.length);
  const va=[],vb=[],lab=[];for(let i=0;i<n;i++){lab.push((ib[i]||ic[i]).l);va.push(ib[i]&&ib[i].R&&ib[i].R.from<=TODAY?pm.f(ib[i].R):null);vb.push(ic[i]&&ic[i].R?pm.f(ic[i].R):null)}
@@ -870,9 +1350,10 @@ function renderCompareView(k){
 }
 function renderPeriodView(k){
  const st=S(k);
- let h=pageHead(k,`<button class="btn sm" onclick="sendSummary('${k}')">${esc(t('send_tg'))}</button>`)+pnav(k,{views:true,snapshot:PM[k].snap});
- return h+(st.view==='trend'?renderTrend(k):renderCompareView(k));
+ let h=pageHead(k,`<button class="btn sm" onclick="sendSummary('${k}')">${esc(t('send_tg'))}</button>`)+pnav(k,{views:true,snapshot:PM[k].snap,all:!PM[k].snap});
+ return h+(st.view==='list'?renderList(k):st.view==='trend'?renderTrend(k):renderCompareView(k));
 }
+
 function kpi(l,v,unit,d,cls){return `<div class="kpi ${cls||''}"><div class="l">${l}</div><div class="v num">${v}${unit?`<small>${unit}</small>`:''}</div>${d?`<div class="d">${d}</div>`:''}</div>`}
 function stChip(cls,txt){return `<span class="st ${cls}">${esc(txt)}</span>`}
 const ORDER_ST={open:['info','open'],closed:['good','closed'],late:['crit','late']};
@@ -895,12 +1376,19 @@ function deviceName(){const u=navigator.userAgent;return /iPhone|Android/.test(u
 
 /* ================= generic data-module config ================= */
 const COL=(f,l,o={})=>({f,l,...o});
+const REALCOLS={
+ orders:[COL('my_no','my_no',{lead:1,mono:1}),COL('od_no','od_no',{mono:1}),COL('po_no','po_no',{mono:1}),COL('cust','customer'),COL('style_name','style'),COL('clr','color'),COL('order_date','order_date',{tp:'date'}),COL('order_year','order_year'),
+  COL('qty','order_qty',{tp:'num'}),COL('cut_qty','cut_qty',{tp:'num'}),COL('fg_qty','fg_qty',{tp:'num'}),COL('ship_qty','ship_qty',{tp:'num'}),COL('status','status',{tp:'ost'}),COL('source_system','source',{tp:'src'})],
+ bom:[COL('my_no','my_no',{lead:1,mono:1}),COL('od_no','od_no',{mono:1}),COL('cust','customer'),COL('style','style',{mono:1}),COL('order_date','order_date',{tp:'date'}),COL('type','type',{tp:'bt'}),COL('material','material',{wrap:1}),COL('color','color'),COL('size','size'),
+  COL('total_use','total_use',{tp:'n2'}),COL('order_qty','order_qty',{tp:'num'}),COL('cons','cons',{tp:'n3'}),COL('unit','unit'),COL('supplier','supplier'),COL('source_system','source',{tp:'src'})],
+ fabric:[COL('material_no','material_no',{lead:1,mono:1}),COL('name','material',{wrap:1}),COL('width','width'),COL('weight','weight'),COL('color','color'),COL('color_name','color_name'),COL('unit','unit'),COL('rolls','rolls',{tp:'num'}),COL('balance','balance',{tp:'n2'}),COL('source_system','source',{tp:'src'})],
+ accessories:[COL('material_no','material_no',{lead:1,mono:1}),COL('item','item',{wrap:1}),COL('color','color'),COL('color_name','color_name'),COL('unit','unit'),COL('balance','balance',{tp:'n2'}),COL('source_system','source',{tp:'src'})]};
 const CFG={
- orders:{data:()=>DB.orders,date:'order_date',title:'od_no',cust:true,cols:[
+ orders:{data:()=>DB.orders,date:'order_date',title:'od_no',cust:true,get cols(){return isDemo()?this.colsDemo:REALCOLS.orders},colsDemo:[
   COL('od_no','od_no',{lead:1,mono:1}),COL('my_no','my_no',{mono:1}),COL('po_no','po_no',{mono:1}),COL('cust','customer'),COL('style','style',{mono:1}),COL('clr','color'),
   COL('order_date','order_date',{tp:'date'}),COL('delivery','delivery',{tp:'date'}),COL('qty','order_qty',{tp:'num'}),COL('price','price',{tp:'money3'}),
   COL('cut_qty','cut_qty',{tp:'num'}),COL('fg_qty','fg_qty',{tp:'num'}),COL('ship_qty','ship_qty',{tp:'num'}),COL('status','status',{tp:'ost'}),COL('source_system','source',{tp:'src'})]},
- bom:{data:()=>DB.bom,date:'order_date',title:'material',cust:true,cols:[
+ bom:{data:()=>DB.bom,date:'order_date',title:'material',cust:true,get cols(){return isDemo()?this.colsDemo:REALCOLS.bom},colsDemo:[
   COL('my_no','my_no',{lead:1,mono:1}),COL('od_no','od_no',{mono:1}),COL('style','style',{mono:1}),COL('type','type',{tp:'bt'}),COL('material','material',{wrap:1}),COL('color','color'),
   COL('cons','cons',{tp:'n3'}),COL('loss','loss',{tp:'num'}),COL('total_use','total_use',{tp:'n2'}),COL('unit','unit'),COL('supplier','supplier'),COL('price','price',{tp:'money3'}),
   COL('est_cost','est_cost',{tp:'money'}),COL('source_system','source',{tp:'src'})]},
@@ -911,11 +1399,11 @@ const CFG={
  receiving:{data:()=>DB.receiving,date:'recv_date',title:'recv_no',cols:[
   COL('recv_no','recv_no',{lead:1,mono:1}),COL('recv_date','date',{tp:'date'}),COL('purchase_no','purchase_no',{mono:1}),COL('supplier','supplier'),COL('material','material',{wrap:1}),
   COL('color','color'),COL('qty','qty',{tp:'num'}),COL('unit','unit'),COL('inspected','inspected',{tp:'num'}),COL('defect','defect',{tp:'n1'}),COL('result','result',{tp:'rst'}),COL('source_system','source',{tp:'src'})]},
- fabric:{data:()=>DB.fabric,title:'name',nodate:1,snap:1,cols:[
+ fabric:{data:()=>DB.fabric,title:'name',nodate:1,snap:1,get cols(){return isDemo()?this.colsDemo:REALCOLS.fabric},colsDemo:[
   COL('material_no','material_no',{lead:1,mono:1}),COL('name','material',{wrap:1}),COL('color','color'),COL('lot','lot',{mono:1}),COL('width','width'),COL('weight','weight'),COL('rolls','rolls',{tp:'num'}),
   COL('received','received',{tp:'num'}),COL('issued','issued',{tp:'num'}),COL('balance','balance',{tp:'num'}),COL('allocated','allocated',{tp:'num'}),COL('available','available',{tp:'num'}),
   COL('wh_count','wh_count',{tp:'num'}),COL('location','location',{mono:1}),COL('source_system','source',{tp:'src'})]},
- accessories:{data:()=>DB.accessories,title:'item',nodate:1,snap:1,cols:[
+ accessories:{data:()=>DB.accessories,title:'item',nodate:1,snap:1,get cols(){return isDemo()?this.colsDemo:REALCOLS.accessories},colsDemo:[
   COL('material_no','material_no',{lead:1,mono:1}),COL('item','item',{wrap:1}),COL('color','color'),COL('supplier','supplier'),COL('unit','unit'),COL('received','received',{tp:'num'}),
   COL('issued','issued',{tp:'num'}),COL('balance','balance',{tp:'num'}),COL('location','location',{mono:1}),COL('source_system','source',{tp:'src'})]},
  shipping:{data:()=>DB.shipping,date:'ship_date',title:'bl_no',cust:true,cols:[
@@ -962,7 +1450,7 @@ function navFor(k){const cfg=CFG[k]||{};if(cfg.snap){const sr=snapRows(k,asOfDat
 function toolbar(k){
  const cfg=CFG[k],st=S(k);
  return `<div class="toolbar">
-  ${cfg.cust?`<select class="inp" style="width:auto" id="cf_${k}" onchange="S('${k}').cust=this.value;S('${k}').page=0;rerender()"><option value="">${esc(t('customer'))}: ${esc(t('ALL'))}</option>${CUSTS.map(c=>`<option ${st.cust===c?'selected':''}>${c}</option>`).join('')}</select>`:''}
+  ${cfg.cust?`<select class="inp" style="width:auto" id="cf_${k}" onchange="S('${k}').cust=this.value;S('${k}').page=0;rerender()"><option value="">${esc(t('customer'))}: ${esc(t('ALL'))}</option>${custList(cfg.data()).map(c=>`<option ${st.cust===c?'selected':''}>${c}</option>`).join('')}</select>`:''}
   <input class="inp grow" id="q_${k}" placeholder="${esc(t('filter'))}" value="${esc(st.q)}" oninput="S('${k}').q=this.value;S('${k}').page=0;debounceRender('q_${k}')"></div>`;
 }
 let dT; function debounceRender(focusId){clearTimeout(dT);dT=setTimeout(()=>{rerender();const el=document.getElementById(focusId);if(el){el.focus();el.setSelectionRange(el.value.length,el.value.length)}},250)}
@@ -971,6 +1459,12 @@ function stdActs(k){return `<button class="btn sm pri" onclick="newRec('${k}')">
 /* module-specific KPI rows for generic modules */
 function kpisFor(k,rows){
  const L=LANG;
+ if(!isDemo()){
+  if(k==='orders'){const q=sum(rows,'qty'),sh=sum(rows,'ship_qty');return kpi(tt('訂單列','Order lines'),fmt(rows.length),'',fmt(uniq(rows,x=>x.my_no))+' '+tt('個自編單號','self keys'))+kpi(t('order_qty'),fmt(q),t('pcs'))+kpi(t('fg_qty'),fmt(sum(rows,'fg_qty')),t('pcs'))+kpi(t('ship_qty'),fmt(sh),t('pcs'),q?fmt(sh/q*100,1)+'%':'')+kpi(t('cut_qty'),fmt(sum(rows,'cut_qty')),t('pcs'),sum(rows,'cut_qty')?'':tt('ERP 未記錄','not recorded in ERP'),sum(rows,'cut_qty')?'':'warn')+kpi(tt('無接單日','No order date'),fmt(rows.filter(r=>!r.order_date).length),'',tt('需 W_COD700','needs W_COD700'),rows.some(r=>!r.order_date)?'warn':'')}
+  if(k==='bom')return kpi(tt('訂單數','Orders'),fmt(uniq(rows,x=>x.my_no)))+kpi(tt('主料列','Main lines'),fmt(rows.filter(r=>r.type==='main').length))+kpi(tt('副料列','Trim lines'),fmt(rows.filter(r=>r.type!=='main').length))+kpi(tt('主料用量','Main fabric'),fmt(sum(rows.filter(r=>r.type==='main'&&/YD/i.test(r.unit)),'total_use')),t('yd'))+kpi(tt('客戶數','Customers'),fmt(uniq(rows,x=>x.cust)));
+  if(k==='fabric'){const yd=rows.filter(r=>!r.unit||/YD/i.test(r.unit));return kpi(tt('料號 × 顏色','Item × colour'),fmt(rows.length))+kpi(tt('庫存量（同 ERP 合計）','Stock qty (= ERP total)'),fmt(sum(rows,'balance'),2),'',rows.length-yd.length?tt('含 ','incl. ')+(rows.length-yd.length)+tt(' 列單位非碼（',' rows not in yd (')+[...new Set(rows.filter(r=>!(!r.unit||/YD/i.test(r.unit))).map(r=>r.unit))].join('/')+')':'')+kpi(tt('負庫存列','Negative lines'),fmt(rows.filter(r=>r.balance<0).length),'','',rows.some(r=>r.balance<0)?'crit':'')+kpi(t('rolls'),fmt(sum(rows,'rolls')),'',rows.some(r=>r.rolls<0)?tt('ERP 疋數未維護','rolls not maintained'):'',rows.some(r=>r.rolls<0)?'warn':'')}
+  if(k==='accessories')return kpi(tt('品項','Items'),fmt(rows.length))+kpi(t('balance'),fmt(sum(rows,'balance'),0));
+ }
  if(k==='orders'){const op=rows.filter(r=>r.status!=='closed');const late=rows.filter(r=>r.status==='late');const due=op.filter(r=>{const d=parseD(r.delivery);return d>=TODAY&&d<=addD(TODAY,14)});
   return kpi(t('kpi_open'),fmt(op.length),'',fmt(sum(op,'qty'))+' '+t('pcs'))+kpi(t('kpi_late'),fmt(late.length),'',fmt(sum(late,r=>r.qty-r.ship_qty))+' '+t('pcs')+' '+t('outstanding'),late.length?'crit':'')+
   kpi(t('due_soon'),fmt(due.length),'','',due.length?'warn':'')+kpi(t('order_qty'),fmt(sum(rows,'qty')),t('pcs'))+kpi(t('amount'),money(sum(rows,r=>r.qty*r.price),0),'','USD')+
@@ -994,11 +1488,14 @@ function kpisFor(k,rows){
   kpi(tt('加權效率','Weighted eff.'),fmt(sum(ef,r=>r.sewn*r.smv)/Math.max(1,sum(ef,r=>r.sewn*r.smv/(r.eff/100)))*100,1)+'%','',tt('Σ標準分 ÷ Σ投入分','Σ std min ÷ Σ avail min'))}
  return '';
 }
+function dsEmpty(k){const cfg=CFG[k];if(!cfg)return false;if(live(cfg.data()).length)return false;if(cfg.snap){const sn=k==='fabric'?'fabsnaps':'accsnaps';if(Object.keys(DB[sn]||{}).length)return false}return true}
 function renderGeneric(k){
+ if(!isDemo()&&dsEmpty(k))return pageHead(k,stdActs(k))+navFor(k)+needHTML(k);
  const rows=filterRows(k);
  let extra='';
  if(k==='production')extra=`<div class="note info" style="margin-bottom:12px">${tt('現有 VRT Prod 保持獨立運作；此頁只顯示、串接、比對。','VRT Prod keeps running on its own; this page only displays, links and compares.')} <a href="https://saintdou-weng.github.io/vrt-prod/" target="_blank" rel="noopener">VRT Prod ↗</a></div>`;
- if(k==='bom')extra=`<div class="formula" style="margin-bottom:12px">${tt('預估料費','Est. material cost')} = ${tt('單耗','Consumption')} × ${tt('訂單量','Order qty')} × (1 + ${tt('損耗%','Loss %')}) × ${tt('料價','Price')} · ${t('price_basis')}: <b>${tt('最近一次採購價（W_CPU795）','Latest purchase price (W_CPU795)')}</b></div>`;
+ if(k==='bom'&&!isDemo())extra=`<p class="note info small" style="margin:0 0 12px">${tt('真實 BOM（W_COD550）：單耗 = 總用量 ÷ 訂單量。ERP 匯出沒有料號和單價，預估料費要等匯入 W_CPU795 採購單價後才算得出來。','Real BOM (W_COD550): consumption = total usage ÷ order qty. The export has no material numbers or prices; material cost needs W_CPU795.')}</p>`;
+ else if(k==='bom')extra=`<div class="formula" style="margin-bottom:12px">${tt('預估料費','Est. material cost')} = ${tt('單耗','Consumption')} × ${tt('訂單量','Order qty')} × (1 + ${tt('損耗%','Loss %')}) × ${tt('料價','Price')} · ${t('price_basis')}: <b>${tt('最近一次採購價（W_CPU795）','Latest purchase price (W_CPU795)')}</b></div>`;
  return pageHead(k,stdActs(k))+navFor(k)+extra+`<div class="kpis">${kpisFor(k,rows)}</div>`+toolbar(k)+tableHTML(k,rows);
 }
 
@@ -1058,6 +1555,7 @@ function saveRec(k,id){
  if(!Object.keys(after).length){if(r._new){toast(tt('請先填資料','Fill in the record first'));return}openRec(k,id);return}
  Object.assign(r,after);
  if(k==='orders'&&!locked){r.status=r.ship_qty>=r.qty?'closed':(parseD(r.delivery)<TODAY?'late':'open')}
+ if(locked&&('notes' in after||'tags' in after))cloudNote(k,r);
  audit(k,id,r._new?'CREATE':'EDIT',before,after); delete r._new; if(DRAFT&&DRAFT.k===k&&DRAFT.id===id)DRAFT=null; persist(); toast(t('saved')); rerender(); openRec(k,id);
 }
 function cancelEdit(k,id){
@@ -1086,8 +1584,8 @@ function newRec(k){
 function meterRow(l,v,max,suffix){const p=max?Math.min(100,v/max*100):0;return `<div class="meter"><span>${esc(l)}</span><div class="trk"><div class="fill" style="width:${p}%"></div></div><span class="val">${suffix!=null?suffix:fmt(p,0)+'%'}</span></div>`}
 function openOrder(id){
  const o=findRec('orders',id); if(!o)return;
- const bom=DB.bom.filter(b=>b.od_no===o.od_no&&!b.deleted_at); const ships=DB.shipping.filter(s=>s.od_no===o.od_no&&!s.deleted_at);
- const prod=DB.production.find(p=>p.od_no===o.od_no); const fg=DB.fg.find(g=>g.od_no===o.od_no); const c=costOrder(o,'latest');
+ const same=x=>(o.od_no&&x.od_no===o.od_no)||(!x.od_no||!o.od_no)&&o.my_no&&keyN(x.my_no)===keyN(o.my_no); const bom=DB.bom.filter(b=>same(b)&&!b.deleted_at); const ships=DB.shipping.filter(s=>same(s)&&!s.deleted_at);
+ const prod=DB.production.find(p=>same(p)); const fgs=DB.fg.filter(g=>same(g)&&!g.deleted_at&&(!o.po_no||!g.po_no||keyN(g.po_no)===keyN(o.po_no))); const fg=fgs.length?{erp_qty:sum(fgs,'erp_qty'),acc_qty:fgs.some(g=>g.acc_qty!=null)?sum(fgs,g=>g.acc_qty||0):null,prod_qty:fgs.some(g=>g.prod_qty!=null)?sum(fgs,g=>g.prod_qty||0):null,n:fgs.length}:null; const c=costOrder(o,'latest');
  const mats=new Set(bom.map(b=>b.material_no+'|'+b.color)); const pur=DB.purchase.filter(p=>mats.has(p.material_no+'|'+p.color)).slice(0,6);
  const kv=(l,v)=>`<div><dt>${esc(l)}</dt><dd>${v}</dd></div>`;
  const s=ORDER_ST[o.status]||['neu',o.status];
@@ -1103,7 +1601,7 @@ function openOrder(id){
  h+=`<div class="sec"><h4>${esc(t('costing'))} · ${tt('預估','Estimated')}</h4>${costBlock(c,o)}</div>`;
  h+=`<div class="sec"><h4>${tt('附件','Attachments')}</h4><label class="btn sm" for="att_${esc(id)}">＋ ${tt('上傳附件','Upload file')}</label><input type="file" id="att_${esc(id)}" hidden onchange="addAttach('${esc(id)}',this)"><div class="small" style="margin-top:6px">${(o.att||[]).map(a=>`📎 ${esc(a)}`).join('<br>')||'<span class="muted">—</span>'}</div></div>`;
  h+=`<div class="sec"><h4>${esc(t('history'))}</h4>${histFor(id)}</div>`;
- openDrawer(`<div class="dh"><div style="min-width:0"><div class="small muted">🧾 ${esc(t('orders'))} · ${stChip(s[0],t(s[1]))}</div><h2 class="mono">${esc(o.od_no)}</h2></div><button class="icon-btn x" onclick="closeDrawer()" aria-label="${esc(t('close'))}"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+ openDrawer(`<div class="dh"><div style="min-width:0"><div class="small muted">🧾 ${esc(t('orders'))} · ${stChip(s[0],t(s[1]))}</div><h2 class="mono">${esc(o.od_no||o.my_no)}</h2></div><button class="icon-btn x" onclick="closeDrawer()" aria-label="${esc(t('close'))}"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
  <div class="db">${h}</div><div class="df" id="dfoot"><button class="btn pri" onclick="openRec('orders','${esc(id)}',true)">${isLocked(o)?tt('備註 / 標籤','Notes / tags'):esc(t('edit'))}</button>${isLocked(o)?'':`<button class="btn dng" onclick="askDel('orders','${esc(id)}')">${esc(t('del'))}</button>`}<button class="btn" onclick="sendSummary('orders','${esc(id)}')">${esc(t('send_tg'))}</button></div>`);
 }
 function addAttach(id,inp){const o=findRec('orders',id);const f=inp.files[0];if(!f)return;(o.att=o.att||[]).push(f.name+' ('+fmt(f.size/1024,0)+' KB)');audit('orders',id,'UPLOAD',null,{file:f.name});persist();toast(t('added'));openOrder(id)}
@@ -1117,7 +1615,7 @@ function rates(){
 const TERMS={ADI:{term:'DDP',freight:0.18,duty:0.00},BEREN:{term:'FOB',freight:0.04,duty:0},ARAMAR:{term:'FOB',freight:0.04,duty:0},ALSCO:{term:'FOB',freight:0.04,duty:0}};
 function wavgPrice(no,color){const ps=DB.purchase.filter(p=>p.material_no===no&&p.color===color&&!p.deleted_at);const q=sum(ps,'qty');return q?sum(ps,p=>p.qty*p.price)/q:null}
 function costOrder(o,basis){
- const R=rates(); const bom=DB.bom.filter(b=>b.od_no===o.od_no&&!b.deleted_at);
+ const R=rates(); const bom=DB.bom.filter(b=>((o.od_no&&b.od_no===o.od_no)||(o.my_no&&keyN(b.my_no)===keyN(o.my_no)))&&!b.deleted_at);
  let mat=null; if(bom.length){mat=sum(bom,b=>{const p=basis==='wavg'?(wavgPrice(b.material_no,b.color)??b.price):b.price;return b.total_use*p})/Math.max(1,o.qty)}
  const smvOk=o.smv>0.01; const tm=TERMS[o.cust]||{term:'FOB',freight:0.04,duty:0};
  const labor=smvOk?o.smv*R.labor:null, oh=smvOk?o.smv*R.oh:null, other=0.02;
@@ -1169,6 +1667,7 @@ function groupedBars(series,labels,o={full:1}){
 function ordersOpenAt(d){const shipBy={};live(DB.shipping).forEach(x=>{if(parseD(x.ship_date)<=d)shipBy[x.od_no]=(shipBy[x.od_no]||0)+x.qty});
  return live(DB.orders).filter(o=>parseD(o.order_date)<=d&&(shipBy[o.od_no]||0)<o.qty).map(o=>({o,shipped:shipBy[o.od_no]||0}))}
 function renderDashboard(){
+ if(!isDemo())return renderDashboardReal();
  const k='dashboard', st=S(k); const R=rangeOf(st); const asof=asOfDate(R); const isNow=ymd(asof)===ymd(TODAY);
  const openAt=ordersOpenAt(asof), late=openAt.filter(x=>parseD(x.o.delivery)<asof), due=openAt.filter(x=>{const d=parseD(x.o.delivery);return d>=asof&&d<=addD(asof,14)});
  const pout=isNow?live(DB.purchase).filter(p=>p.outstanding>0):live(DB.purchase).filter(p=>parseD(p.purchase_date)<=asof&&parseD(p.eta)>asof);
@@ -1212,6 +1711,7 @@ function wipStages(){const p=live(DB.production);return [[tt('待裁','Not cut')
 
 /* ================= WIP ================= */
 function renderWIP(){
+ if(!isDemo()&&wipAt(TODAY).erp==null)return pageHead('wip')+pnav('wip',{snapshot:true})+`<p class="note info">${tt('WIP 要有裁剪量才算得出來。ERP W_COD690 的裁剪量目前全是 0，所以 ERP 推算 WIP 無法計算；生產 WIP 需接 VRT Prod，會計 WIP 需接 Account Flow。','WIP needs cutting quantities. ERP W_COD690 cutting qty is all 0, so ERP-derived WIP cannot be computed; production WIP needs VRT Prod and accounting WIP needs Account Flow.')}</p>`+needHTML('wip');
  const k='wip', st0=S(k); const R=rangeOf(st0), asof=asOfDate(R), w=wipAt(asof); const p=live(DB.production); const st=wipStages();
  let h=pageHead(k,`<button class="btn sm" onclick="sendSummary('wip')">${esc(t('send_tg'))}</button>`)+pnav(k,{views:true,snapshot:true,asof:w.asof});
  h+=`<div class="grid3"><div class="panel"><div class="small muted">${srcBadge('VRT_PROD')} ${tt('生產 WIP（件）','Production WIP (pcs)')}</div><div class="kpi" style="border:0;padding:6px 0"><div class="v">${fmt(w.prod)}<small>${esc(t('pcs'))}</small></div><div class="d">As of ${esc(w.asof)}</div></div><div class="formula">Σ (cut − FG) · sewing_v9 / cutting_v4</div></div>
@@ -1231,6 +1731,7 @@ function renderWIP(){
 
 /* ================= Production (VRT Prod link, read-only) ================= */
 function renderProduction(){
+ if(!isDemo())return pageHead('production')+`<div class="note info" style="margin-bottom:12px">${tt('生產數字以 VRT Prod 為準。這裡要等 VRT Prod 資料串接（或匯入 VRT Prod 匯出檔）後才會顯示，不再用示範數字。','Production figures come from VRT Prod. They appear here once VRT Prod is linked (or its export imported); no sample numbers are shown.')} <a href="https://saintdou-weng.github.io/vrt-prod/portal_v2.html" target="_blank" rel="noopener">VRT Prod ↗</a></div>`+needHTML('production');
  const k='production', st=S(k), R=rangeOf(st); const pr=prodRange(R);
  const byL={}; pr.forEach(x=>{const g=byL[x.line]=byL[x.line]||{line:x.line,days:new Set(),ops:0,cut:0,sewn:0,packed:0,std:0,avail:0};g.days.add(x.ds);g.ops+=x.ops;g.cut+=x.cut;g.sewn+=x.sewn;g.packed+=x.packed;g.std+=x.std;g.avail+=x.avail});
  const lines=Object.values(byL).sort((a,b)=>+a.line.slice(5)-+b.line.slice(5)); const A=sum(pr,'avail'),Sd=sum(pr,'std');
@@ -1245,8 +1746,54 @@ function renderProduction(){
  return h;
 }
 
+
+/* ================= v0.5 real-data dashboard & finished goods ================= */
+const QUICK=()=>[['orders','🧾',tt('訂單 / PO','Orders / PO')],['bom','🧵','BOM'],['fabric','🧶',tt('布料','Fabric')],['finished-goods','📦',tt('成品入庫','Finished Goods')],['shipping','🚢',tt('出貨','Shipping')],['compare','🔍',tt('資料比對','Compare')],['exceptions','⚠️',tt('異常','Exceptions')],['smart-import','🧠',tt('智慧匯入','Smart Import')]];
+function renderDashboardReal(){
+ const k='dashboard', st=S(k), R=rangeOf(st);
+ let h=pageHead(k,`<button class="btn sm pri" onclick="go('smart-import')">🧠 ${esc(t('smart-import'))}</button>`)+cloudBanner();
+ h+=`<div class="quick-grid">${QUICK().map(([m,ic,l])=>`<a class="quick-link" href="#${m}"><span class="qi">${ic}</span><span><b>${esc(l)}</b><span>${esc(t(m))}</span></span></a>`).join('')}</div>`;
+ const F=DB.erpfiles||[];
+ if(!F.length)return h+`<div class="panel empty"><h2>${tt('還沒有匯入任何 ERP 資料','No ERP data imported yet')}</h2><p>${tt('之前畫面上的數字都是示範用的假資料。現在改成只顯示真實資料：到「智慧匯入」把 ERP 下載的檔案（Q2014、R2014、K01、B01…）一次拖進來即可。','The numbers shown before were sample data. Now only real data is shown: drop the ERP downloads (Q2014, R2014, K01, B01…) into Smart Import.')}</p><a class="btn pri" href="#smart-import">🧠 ${esc(t('smart-import'))}</a></div>`+coverageHTML();
+ h+=pnav(k,{views:true,all:true});
+ const ms=activeMetrics(k);
+ h+=`<h3 class="sec-h">${tt('期間累計','Period totals')} · ${esc(periodLabel(st.pt,R))}</h3><div class="kpis">${ms.map(m=>kpi(esc(m.l()),fmtM(m.f(R),m.ty),'',srcNote(m))).join('')}</div>`;
+ const fab=snapRows('fabric',asOfDate(R)); const yd=fab.rows.filter(x=>!x.unit||/YD/i.test(x.unit));
+ const nd=live(DB.orders).filter(o=>!o.order_date&&o.order_year&&yearCovers(o.order_year,R));
+ h+=`<h3 class="sec-h">${tt('時點狀態','Position')}</h3><div class="kpis">${kpi(t('kpi_fab'),fab.rows.length?fmt(sum(fab.rows,'balance'),2):'—','',fab.rows.length?'As of '+fab.asof+' · K01':tt('未匯入主料庫存','fabric stock not imported'))}
+  ${kpi(tt('ERP 檔案','ERP files'),fmt(F.length),'',fmt(sum(F,'rows'))+tt(' 筆',' rows'))}${kpi(t('kpi_exc'),fmt(liveExceptions().length+ISSUES.filter(i=>i[5]!=='done').length),'',tt('檢查 ','checks ')+liveExceptions().length+tt(' + V3 登記表 ',' + V3 register ')+ISSUES.filter(i=>i[5]!=='done').length,'warn')}
+  ${nd.length?kpi(tt('無接單日訂單','Orders w/o date'),fmt(nd.length),'',tt('只算年報','yearly only'),'warn'):''}</div>`;
+ const fgR=live(DB.fg).filter(g=>inR(g.fg_date,R)); const ib=innerBuckets(st.pt==='ALL'?'Y':st.pt,R).filter(b=>b.R&&b.R.from<=TODAY);
+ if(fgR.length&&ib.length>1)h+=`<div class="panel mt"><h2>${tt('成品入庫件數','FG stock-in pieces')} · ${esc(periodLabel(st.pt,R))}</h2><p class="hint">W_CST580 · ${tt('真實資料','real data')}</p>${barChart(ib.map(b=>sum(fgR.filter(g=>inR(g.fg_date,b.R)),'erp_qty')),ib.map(b=>b.l),t('pcs'),{full:1})}</div>`;
+ const E=liveExceptions(st.pt==='ALL'?null:R);
+ h+=`<div class="grid2 mt"><div class="panel"><h2>${esc(t('top_exc'))}</h2><p class="hint">${tt('從匯入的 ERP 檔自動檢查','checked automatically from imported ERP files')}</p>${E.slice(0,8).map(e=>`<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--line-2);align-items:baseline"><span>${stChip(e.sev,e.sev==='crit'?tt('嚴重','critical'):e.sev==='info'?tt('提示','note'):tt('注意','warning'))}</span><span style="flex:1">${esc(e.title)}</span><span class="num small">${esc(e.count)}</span></div>`).join('')||`<div class="small muted">—</div>`}<a class="btn sm" style="margin-top:10px" href="#exceptions">${esc(t('exceptions'))} →</a></div>
+  <div class="panel"><h2>${tt('已匯入 ERP 檔','Imported ERP files')}</h2>${F.slice(0,8).map(f=>`<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--line-2);flex-wrap:wrap"><b class="mono">${esc(f.fn)}</b><span class="small" style="flex:1">${esc(f.label)}</span><span class="num small">${fmt(f.rows)}</span></div>`).join('')}<a class="btn sm" style="margin-top:10px" href="#sync">${tt('ERP 匯入清單','ERP import checklist')} →</a></div></div>`;
+ return h;
+}
+const srcNote=m=>({orders:'W_COD690',fg:'W_CST580',bom:'W_COD550',ship:'W_CBL300',pur:'W_CPU795',recv:'W_CVA300'})[m.src]||'';
+function renderFGReal(){
+ const k='finished-goods', st=S(k); const all=live(DB.fg);
+ if(!all.length)return pageHead(k)+navFor(k)+needHTML(k);
+ let rows=all.filter(g=>inR(g.fg_date,rangeOf(st)));
+ if(st.cust)rows=rows.filter(r=>r.cust===st.cust);
+ if(st.q){const q=st.q.toLowerCase();rows=rows.filter(r=>[r.my_no,r.po_no,r.style,r.style_name,r.clr,r.cust].some(v=>String(v||'').toLowerCase().includes(q)))}
+ const hasA=all.some(g=>g.acc_qty!=null), hasP=all.some(g=>g.prod_qty!=null);
+ let h=pageHead(k,`<button class="btn sm pri" onclick="go('smart-import')">🧠 ${esc(t('smart-import'))}</button><button class="btn sm" onclick="exportFG()">${esc(t('export'))}</button>`)+pnav(k,{all:true,views:true});
+ h+=`<div class="tri"><div><div class="small muted">${srcBadge('LEGACY_ERP')} ERP · W_CST580</div><div class="v">${fmt(sum(rows,'erp_qty'))}</div><span class="small muted">${fmt(rows.length)} ${tt('筆','records')} · ${fmt(uniq(rows,x=>x.my_no))} ${tt('個自編單號','self keys')}</span></div>
+  <div><div class="small muted">${srcBadge('ACCOUNT_FLOW')} ACC smart_fg</div><div class="v">${hasA?fmt(sum(rows.filter(g=>g.acc_qty!=null),'acc_qty')):'—'}</div><span class="small muted">${hasA?'':tt('未匯入','not imported')}</span></div>
+  <div><div class="small muted">${srcBadge('VRT_PROD')} PROD FG</div><div class="v">${hasP?fmt(sum(rows.filter(g=>g.prod_qty!=null),'prod_qty')):'—'}</div><span class="small muted">${hasP?'':tt('未匯入','not imported')}</span></div></div>`;
+ h+=`<div class="toolbar"><select class="inp" style="width:auto" id="cf_fg" onchange="S('${k}').cust=this.value;S('${k}').page=0;rerender()"><option value="">${esc(t('customer'))}: ${esc(t('ALL'))}</option>${custList(all).map(c=>`<option ${st.cust===c?'selected':''}>${esc(c)}</option>`).join('')}</select>
+  <input class="inp grow" id="q_fg" placeholder="${esc(t('filter'))}" value="${esc(st.q)}" oninput="S('${k}').q=this.value;S('${k}').page=0;debounceRender('q_fg')"></div>`;
+ if(!rows.length)return h+`<div class="note">${esc(t('no_data'))} ${tt('（目前匯入的成品入庫日期：','(imported FG dates: ')}${esc(all.map(g=>g.fg_date).sort()[0])} ～ ${esc(all.map(g=>g.fg_date).sort().pop())}）</div>`;
+ const per=50, pages=Math.ceil(rows.length/per); if(st.page>=pages)st.page=0; const sl=rows.slice().sort((a,b)=>a.fg_date<b.fg_date?1:-1).slice(st.page*per,st.page*per+per);
+ h+=`<div class="tbl-wrap"><table class="t cards"><thead><tr><th>${tt('入庫日','FG date')}</th><th>${esc(t('customer'))}</th><th>${esc(t('my_no'))}</th><th>${esc(t('style'))}</th><th>${tt('款式名稱','Style name')}</th><th>${esc(t('po_no'))}</th><th>${esc(t('color'))}</th><th class="r">ERP</th>${hasA?'<th class="r">ACC</th>':''}${hasP?'<th class="r">PROD</th>':''}<th>${tt('尺碼明細','Sizes')}</th><th>${esc(t('source'))}</th></tr></thead><tbody>
+ ${sl.map(g=>`<tr><td class="lead mono" data-l="">${esc(g.fg_date)} · ${esc(g.my_no)}</td><td data-l="${esc(t('customer'))}">${esc(g.cust)}</td><td class="mono" data-l="${esc(t('my_no'))}">${esc(g.my_no)}</td><td class="mono" data-l="${esc(t('style'))}">${esc(g.style)}</td><td class="wrap" data-l="">${esc(g.style_name)}</td><td class="mono" data-l="${esc(t('po_no'))}">${esc(g.po_no)}</td><td data-l="${esc(t('color'))}">${esc(g.clr)}</td><td class="r" data-l="ERP"><b>${fmt(g.erp_qty)}</b></td>${hasA?`<td class="r" data-l="ACC">${g.acc_qty==null?'—':fmt(g.acc_qty)}</td>`:''}${hasP?`<td class="r" data-l="PROD">${g.prod_qty==null?'—':fmt(g.prod_qty)}</td>`:''}<td class="wrap small mono" data-l="${tt('尺碼','Sizes')}">${esc(g.sizes||'')}</td><td data-l="">${srcBadge(g.source_system)}</td></tr>`).join('')}</tbody></table></div>
+ <div class="pager"><span>${esc(t('rows_shown'))} ${fmt(st.page*per+1)}–${fmt(Math.min(rows.length,(st.page+1)*per))} ${esc(t('of'))} ${fmt(rows.length)} ${esc(t('records'))}</span><span style="display:flex;gap:6px"><button class="btn sm" ${st.page<=0?'disabled':''} onclick="S('${k}').page--;rerender()">${esc(t('prev'))}</button><button class="btn sm" ${st.page>=pages-1?'disabled':''} onclick="S('${k}').page++;rerender()">${esc(t('next'))}</button></span></div>`;
+ return h;
+}
 /* ================= Finished goods ================= */
 function renderFG(){
+ if(!isDemo())return renderFGReal();
  const k='finished-goods', st=S(k);
  let rows=live(DB.fg).filter(g=>inR(g.fg_date,rangeOf(st)));
  if(st.cust)rows=rows.filter(r=>r.cust===st.cust);
@@ -1265,12 +1812,13 @@ function renderFG(){
   return `<tr class="click" onclick="openOrder('${(DB.orders.find(o=>o.od_no===g.od_no)||{}).id}')"><td class="lead mono" data-l="${esc(t('od_no'))}">${esc(g.od_no)}</td><td class="mono" data-l="${esc(t('my_no'))}">${esc(g.my_no)}</td><td class="mono" data-l="${esc(t('po_no'))}">${esc(g.po_no)}</td><td class="mono" data-l="${esc(t('style'))}">${esc(g.style)}</td><td data-l="${esc(t('color'))}">${esc(g.clr)}</td><td data-l="${esc(t('date'))}">${esc(g.fg_date)}</td><td class="r" data-l="ERP">${fmt(g.erp_qty)}</td><td class="r" data-l="ACC">${g.acc_qty==null?'—':fmt(g.acc_qty)}</td><td class="r" data-l="PROD">${fmt(g.prod_qty)}</td><td class="r" data-l="ACC−ERP">${da==null?'—':d(da)}</td><td class="r" data-l="PROD−ERP">${d(dp)}</td><td data-l="${esc(t('status'))}">${stt}</td></tr>`}).join('')}</tbody></table></div>`:`<div class="note">${esc(t('no_data'))}</div>`;
  return h;
 }
-function exportFG(){const rows=live(DB.fg);showCSV('finished_goods_3way.csv',[['od_no','my_no','po_no','style','color','fg_date','erp_qty','acc_qty','prod_qty']].concat(rows.map(g=>[g.od_no,g.my_no,g.po_no,g.style,g.clr,g.fg_date,g.erp_qty,g.acc_qty??'',g.prod_qty])))}
+function exportFG(){const rows=live(DB.fg);showCSV('finished_goods.csv',[['fg_date','cust','my_no','style','style_name','po_no','color','erp_qty','acc_qty','prod_qty','sizes','source_file']].concat(rows.map(g=>[g.fg_date,g.cust||'',g.my_no,g.style||'',g.style_name||'',g.po_no,g.clr,g.erp_qty,g.acc_qty??'',g.prod_qty??'',g.sizes||'',g.source_file||''])))}
 
 /* ================= Factory cost ================= */
 const FC_CATS=[['payroll','Payroll','薪資'],['ot','OT','加班'],['electricity','Electricity','電費'],['water','Water','水費'],['repair','Repair','維修'],['spare','Spare parts','零件'],['consumables','Consumables','耗材'],['depreciation','Depreciation','折舊'],['other','Other expense','其他費用']];
 const fcTotal=r=>FC_CATS.reduce((s,c)=>s+r[c[0]],0);
 function renderFC(){
+ if(!isDemo()&&!live(DB.factorycost).length)return pageHead('factory-cost')+needHTML('factory-cost');
  const k='factory-cost', st=S(k), Rg=rangeOf(st); const Rr=rates();
  const fcAll=live(DB.factorycost); const months=fcAll.filter(r=>{const [y,m]=r.month.split('-').map(Number);return new Date(y,m-1,1)<=Rg.to&&new Date(y,m,0)>=Rg.from});
  const X=fcIn(Rg); const partial=st.pt==='D'||st.pt==='W'||(st.pt==='C'&&months.length&&((Rg.to-Rg.from)/864e5<27));
@@ -1296,6 +1844,7 @@ function renderFC(){
 
 /* ================= Costing ================= */
 function renderCosting(){
+ if(!isDemo()&&!DB.orders.some(o=>o.price&&o.smv))return pageHead('costing')+`<p class="note info">${tt('成本要同時有：訂單單價（W_COD700）、BOM（W_COD550）、料價（W_CPU795）、SMV（W_CBA190）。目前還缺單價與 SMV，所以不顯示任何估算。','Costing needs order price (W_COD700), BOM (W_COD550), material prices (W_CPU795) and SMV (W_CBA190). Price and SMV are still missing, so nothing is estimated.')}</p>`+needHTML('costing');
  const k='costing', st=S(k); st.basis=st.basis||'latest';
  let ords=flowOrders(rangeOf(st)); if(st.cust)ords=ords.filter(o=>o.cust===st.cust);
  const rows=ords.map(o=>({o,c:costOrder(o,st.basis)})); const ok=rows.filter(r=>r.c.total!=null);
@@ -1326,9 +1875,9 @@ function renderSync(){
  h+=`<div class="steps">${flow.map((f,i)=>`<span class="${i<2?'on':''}">${esc(f)}</span>`).join('<span style="border:0;background:none">→</span>')}</div>`;
  h+=`<div class="kpis">${kpi(tt('排程','Schedule'),esc(c.time),'',tt('週一至週六；週日與廠休日跳過','Mon–Sat; Sundays & factory holidays skipped'))}${kpi(tt('下一次','Next run'),'<span style="font-size:17px">'+esc(nextSyncText())+'</span>','',tt('可在設定修改時間 / 行事曆','change time / calendar in Settings'))}${kpi(tt('Legacy 寫入','Legacy writes'),'0','',tt('只允許 SELECT','SELECT only'),'good')}${kpi(tt('後端','Backend'),c.gas?'GAS':'—','',c.gas?tt('已設定 Web App','Web App set'):tt('尚未設定（設定頁）','not set (Settings)'),c.gas?'good':'warn')}</div>`;
  h+=`<div class="note crit" style="margin:12px 0">${tt('單向：Legacy ERP → PSJERP Cloud。不做反向同步。Bridge 帳號只允許 SELECT。休假日不進 Legacy ERP、不發每日摘要；手動「立即同步」仍只讀。','One-way: Legacy ERP → PSJERP Cloud. No reverse sync; the Bridge account may only SELECT. On holidays nothing touches the legacy ERP and no daily summary is sent; manual Sync now is still read-only.')}</div>`;
- h+=`<div class="tbl-wrap"><table class="t cards"><thead><tr><th>Dataset</th><th>ERP</th><th class="r">Legacy</th><th class="r">Cloud</th><th>Last sync</th><th class="r">Added</th><th class="r">Updated</th><th class="r">Errors</th><th>${esc(t('status'))}</th><th>${tt('說明','Note')}</th><th></th></tr></thead><tbody>
+ if(!isDemo())h+=coverageHTML(true); else{h+=`<div class="tbl-wrap"><table class="t cards"><thead><tr><th>Dataset</th><th>ERP</th><th class="r">Legacy</th><th class="r">Cloud</th><th>Last sync</th><th class="r">Added</th><th class="r">Updated</th><th class="r">Errors</th><th>${esc(t('status'))}</th><th>${tt('說明','Note')}</th><th></th></tr></thead><tbody>
  ${SYNCSETS.map((x,i)=>`<tr><td class="lead" data-l="Dataset">${modIcon(x.k)} ${esc(x.k==='smv'?'SMV':t(x.k))}</td><td class="mono small" data-l="ERP">${esc(x.fn)}</td><td class="r" data-l="Legacy">${x.legacy==null?'—':fmt(x.legacy)}</td><td class="r" data-l="Cloud">${fmt(x.cloud)}</td><td data-l="Last sync">${esc(x.last)}</td><td class="r" data-l="Added">${fmt(x.add)}</td><td class="r" data-l="Updated">${fmt(x.upd)}</td><td class="r" data-l="Errors">${x.err?`<b class="diff-neg">${fmt(x.err)}</b>`:'0'}</td><td data-l="${esc(t('status'))}">${syncChip(x.st)}</td><td class="wrap small" data-l="Note">${esc(x.note[LANG===0?0:1])}</td>
- <td data-l=""><div style="display:flex;gap:4px;flex-wrap:wrap"><button class="btn sm" onclick="syncNow(${i})">Sync Now</button>${x.err||x.st==='error'?`<button class="btn sm dng" onclick="syncErr(${i})">View Error</button>`:''}</div></td></tr>`).join('')}</tbody></table></div>`;
+ <td data-l=""><div style="display:flex;gap:4px;flex-wrap:wrap"><button class="btn sm" onclick="syncNow(${i})">Sync Now</button>${x.err||x.st==='error'?`<button class="btn sm dng" onclick="syncErr(${i})">View Error</button>`:''}</div></td></tr>`).join('')}</tbody></table></div>`;}
  const runs=(DB.syncruns||[]).filter(r=>inR(r.time.slice(0,10),R));
  h+=`<div class="panel mt"><h2>${tt('同步紀錄 / History','Sync history')}</h2>${pnav(k,{all:true})}
  <div class="kpis" style="margin-bottom:10px">${kpi(tt('成功','OK'),fmt(runs.filter(r=>r.st==='ok').length),'','','good')}${kpi(tt('跳過（週日 / 廠休）','Skipped (Sun / holiday)'),fmt(runs.filter(r=>r.st==='skipped').length))}${kpi(tt('錯誤','Errors'),fmt(runs.filter(r=>r.st==='error').length),'','',runs.some(r=>r.st==='error')?'crit':'')}</div>
@@ -1342,6 +1891,10 @@ function showModal(h){$('#modal').innerHTML=h;$('#modal').hidden=false;$('#scrim
 
 /* ================= Compare center ================= */
 const CMP={
+ fgqr:{l:['訂單統計入庫量 vs 成品入庫明細（ERP 兩張報表）','W_COD690 FG qty vs W_CST580 stock-ins'],key:'自編單號 + PO',srcs:['LEGACY_ERP','LEGACY_ERP'],srcL:['W_COD690 '+tt('入庫量','FG qty'),'W_CST580 '+tt('入庫合計','stock-in total')],rows:R=>{
+  const qm=new Map(); live(DB.orders).filter(o=>o.import_key&&(o.order_date?inR(o.order_date,R):yearCovers(o.order_year,R))).forEach(o=>{const k=ordKey(o.my_no,o.po_no);const x=qm.get(k)||{v:0,o,n:0};x.v+=o.fg_qty||0;x.n++;qm.set(k,x)});
+  const rm=new Map(); live(DB.fg).forEach(g=>{const k=ordKey(g.my_no,g.po_no);rm.set(k,(rm.get(k)||0)+(g.erp_qty||0))});
+  return [...qm.entries()].filter(([k,x])=>x.v||rm.has(k)).map(([k,x])=>({k:x.o.my_no+' / '+x.o.po_no,sub:(x.o.style_name||'')+' · '+(x.o.order_year||x.o.order_date||''),v:[x.v,rm.has(k)?rm.get(k):null],open:`openOrder('${x.o.id}')`}))}},
  fg:{l:['成品入庫','Finished goods'],key:'od_no / my_no / PO',srcs:['LEGACY_ERP','ACCOUNT_FLOW','VRT_PROD'],rows:R=>live(DB.fg).filter(g=>inR(g.fg_date,R)).map(g=>({k:g.my_no,sub:g.style+' · '+g.clr+' · '+g.fg_date,v:[g.erp_qty,g.acc_qty,g.prod_qty],open:`openOrder('${(DB.orders.find(o=>o.od_no===g.od_no)||{}).id}')`}))},
  fabric:{l:['布料庫存（帳 vs 實盤）','Fabric stock (book vs count)'],snap:1,key:'material_no + color + lot',srcs:['LEGACY_ERP','VRT_PROD'],srcL:['ERP W_CSTA10V',tt('倉庫實盤','Warehouse count')],rows:R=>snapRows('fabric',asOfDate(R)).rows.map(f=>({k:f.material_no+' · '+f.lot,sub:f.name+' '+f.color,v:[f.balance,f.wh_count],open:f._snap?'':`openRec('fabric','${f.id}')`}))},
  recv:{l:['採購已收 vs 驗收','Purchase received vs receipts'],key:'purchase_no',srcs:['LEGACY_ERP','VRT_PROD'],srcL:['W_CPU795 received','W_CVA300 / Warehouse'],rows:R=>live(DB.purchase).filter(p=>p.received>0&&inR(p.purchase_date,R)).map(p=>{const r=DB.receiving.find(x=>x.purchase_no===p.purchase_no&&!x.deleted_at);return {k:p.purchase_no,sub:p.material+' '+p.color,v:[p.received,r?r.qty:null],open:`openRec('purchase','${p.id}')`}})},
@@ -1349,7 +1902,7 @@ const CMP={
  imp:{l:['匯入檔 vs ERP（差異，不覆蓋 ERP）','Imported file vs ERP (differences, ERP kept)'],key:'import key',srcs:['LEGACY_ERP','EXCEL_IMPORT'],srcL:['ERP','Excel'],rows:R=>(DB.cmpres||[]).filter(c=>inR(c.time.slice(0,10),R)).map(c=>({k:c.key,sub:c.dataset+' · '+c.field+' · '+c.batch,v:[isFinite(c.erp)?+c.erp:null,isFinite(c.imp)?+c.imp:null],open:''}))},
 };
 function renderCompare(){
- const k='compare', st=S(k); st.ds=st.ds||'fg'; st.tol=st.tol??0; st.f=st.f||'all';
+ const k='compare', st=S(k); st.ds=st.ds||(isDemo()?'fg':'fgqr'); st.tol=st.tol??0; st.f=st.f||'all';
  const C=CMP[st.ds]; const Rg=rangeOf(st); const rows=C.rows(Rg).map(r=>{const base=r.v[0];let x='match';
   if(base==null)x='unmapped'; else if(r.v.slice(1).some(v=>v==null))x='missing'; else if(r.v.slice(1).some(v=>Math.abs(v-base)>st.tol))x='qty';
   return {...r,s:x}});
@@ -1362,7 +1915,7 @@ function renderCompare(){
  <div class="field"><label>${tt('比對鍵','Match key')}</label><span class="mono small" style="padding:7px 0">${esc(C.key)}</span></div>
  <div class="field"><label for="cmpTol">${tt('容許差','Tolerance')}</label><input class="inp" id="cmpTol" type="number" min="0" style="width:100px" value="${st.tol}" onchange="S('compare').tol=+this.value;rerender()"></div>
  <div class="field"><label>${esc(t('source'))}</label><div style="display:flex;gap:4px;flex-wrap:wrap;padding-top:5px">${C.srcs.map((x,i)=>srcBadge(x)+' <span class="small muted">'+esc(labels[i])+'</span>').join(' vs ')}</div></div></div>`;
- h+=`<div class="note info" style="margin:0 0 12px">${tt('真實 PROD 資料的對照（ERP 匯出檔 ↔ 排產／車縫／出貨排程、日報草稿）在 VRT Prod 的「ERP 對照中心」；本頁示範資料只示意流程。','Real PROD comparisons (ERP export files vs production plan / sewing / shipping schedule, daily report draft) live in the VRT Prod "ERP link centre"; the demo rows here only illustrate the flow.')} <a href="https://saintdou-weng.github.io/vrt-prod/vrt_erp_link_v1.html" target="_blank" rel="noopener">${esc(t('erp_link_prod'))} ↗</a> · <a href="https://saintdou-weng.github.io/vrt-prod/portal_v2.html" target="_blank" rel="noopener">VRT Prod ↗</a></div>`;
+ h+=`<div class="note info" style="margin:0 0 12px">${isDemo()?tt('真實 PROD 資料的對照（ERP 匯出檔 ↔ 排產／車縫／出貨排程、日報草稿）在 VRT Prod 的「ERP 對照中心」；本頁示範資料只示意流程。','Real PROD comparisons live in the VRT Prod "ERP link centre"; the demo rows here only illustrate the flow.'):tt('本頁比對的是已匯入的真實 ERP 資料（例：W_COD690 入庫量 vs W_CST580 入庫明細）。ERP 與排產／車縫／出貨排程的對照在 VRT Prod 的「ERP 對照中心」。','This page compares imported real ERP data (e.g. W_COD690 FG qty vs W_CST580 stock-ins). ERP vs production schedules lives in the VRT Prod "ERP link centre".')} <a href="https://saintdou-weng.github.io/vrt-prod/vrt_erp_link_v1.html" target="_blank" rel="noopener">${esc(t('erp_link_prod'))} ↗</a> · <a href="https://saintdou-weng.github.io/vrt-prod/portal_v2.html" target="_blank" rel="noopener">VRT Prod ↗</a></div>`;
  h+=pnav(k,{all:!C.snap,snapshot:!!C.snap});
  h+=`<div class="kpis">${Object.entries(SL).map(([x,[c,l]])=>`<button class="kpi ${x==='qty'&&cnt(x)?'crit':x==='missing'&&cnt(x)?'warn':''}" style="text-align:left;cursor:pointer;${st.f===x?'outline:2px solid var(--accent)':''}" onclick="S('compare').f=S('compare').f==='${x}'?'all':'${x}';rerender()"><span class="l">${esc(l)}</span><span class="v num">${fmt(cnt(x))}</span></button>`).join('')}</div>`;
  h+=show.length?`<div class="tbl-wrap mt"><table class="t cards"><thead><tr><th>Key</th><th>${tt('說明','Detail')}</th>${labels.map(l=>`<th class="r">${esc(l)}</th>`).join('')}<th class="r">${esc(t('difference'))}</th><th>${esc(t('status'))}</th></tr></thead><tbody>
@@ -1372,6 +1925,7 @@ function renderCompare(){
 
 /* ================= Exceptions ================= */
 function liveExceptions(Rg){
+ if(!isDemo())return realExceptions(Rg);
  const all=!Rg; Rg=Rg||{all:true}; const o=live(DB.orders).filter(x=>inR(x.order_date,Rg)), E=[];
  const p0=o.filter(x=>x.price===0); if(p0.length)E.push({sev:'warn',title:tt('訂單單價 = 0','Order unit price = 0'),count:p0.length+' '+tt('張','orders'),go:'orders'});
  const nb=o.filter(x=>!DB.bom.some(b=>b.od_no===x.od_no)); if(nb.length)E.push({sev:'warn',title:tt('訂單缺 BOM','Orders missing BOM'),count:nb.length+' '+tt('張','orders'),go:'bom'});
@@ -1475,8 +2029,10 @@ function renderImport(){
  const stage=!IMP?0:IMP.done?11:8;
  let h=pageHead(k);
  h+=`<div class="steps">${steps.map((s,i)=>`<span class="${i<stage?'done':i===stage?'on':''}">${i<stage?'✓ ':''}${esc(s)}</span>`).join('')}</div>`;
- h+=`<div class="drop" id="drop" tabindex="0" role="button"><b>📤 ${tt('拖曳或點此上傳 Excel / CSV','Drop or tap to upload Excel / CSV')}</b><span class="small muted">.xlsx · .xls · .csv · .txt — ${tt('不用先選種類','no need to choose a type')}</span></div>
- <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center"><span class="small muted">${tt('沒有檔案？試用範例：','No file at hand? Try a sample:')}</span><button class="btn sm" onclick="sampleFile('fg')">smart_fg_2026-09.csv</button><button class="btn sm" onclick="sampleFile('bom')">W_COD550_B12.csv</button><button class="btn sm" onclick="sampleFile('fc')">factory_cost_2026.csv</button></div>`;
+ h+=`<div class="drop" id="drop" tabindex="0" role="button"><b>📤 ${tt('拖曳或點此上傳 ERP 匯出檔（可一次多個）','Drop or tap to upload ERP export files (several at once)')}</b><span class="small muted">.xlsx · .xls · .csv · .txt — ${tt('不用先選種類','no need to choose a type')}</span></div>
+ ${isDemo()?'':'<!--'}<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center"><span class="small muted">${tt('沒有檔案？試用範例：','No file at hand? Try a sample:')}</span><button class="btn sm" onclick="sampleFile('fg')">smart_fg_2026-09.csv</button><button class="btn sm" onclick="sampleFile('bom')">W_COD550_B12.csv</button><button class="btn sm" onclick="sampleFile('fc')">factory_cost_2026.csv</button></div>${isDemo()?'':'-->'}`;
+ h+=cloudBanner()+erpQueueHTML();
+ if(!IMPQ.length&&!IMP)h+=coverageHTML();
  if(IMP&&!IMP.done){
   const d=IMP.ds?DS[IMP.ds]:null; const c=n=>IMP.rows?IMP.rows.filter(r=>r.st===n).length:0;
   h+=`<div class="grid2 mt"><div class="panel"><h2>${tt('偵測結果','Detected')}</h2><p class="hint mono">${esc(IMP.file)} · ${esc(IMP.sheet)} · ${fmt(IMP.data.length)} ${tt('列','rows')} · ${fmt(IMP.hdr.length)} ${tt('欄','columns')}</p>
@@ -1530,13 +2086,13 @@ function sampleFile(kind){
 function renderReports(){
  const k='reports', st=S(k), Rg=rangeOf(st);
  const ords=flowOrders(Rg), ships=live(DB.shipping).filter(x=>inR(x.ship_date,Rg));
- const byC=CUSTS.map(c=>{const o=ords.filter(x=>x.cust===c),sh=ships.filter(x=>x.cust===c);const cs=o.map(x=>({x,c:costOrder(x,'latest')})).filter(z=>z.c.total!=null);const rv=sum(cs,z=>z.x.qty*z.x.price),co=sum(cs,z=>z.x.qty*z.c.total);
+ const byC=custList(ords.concat(ships)).map(c=>{const o=ords.filter(x=>x.cust===c),sh=ships.filter(x=>x.cust===c);const cs=o.map(x=>({x,c:costOrder(x,'latest')})).filter(z=>z.c.total!=null);const rv=sum(cs,z=>z.x.qty*z.x.price),co=sum(cs,z=>z.x.qty*z.c.total);
   return [c,o.length,sum(o,'qty'),sum(o,x=>x.qty*x.price),sum(sh,'qty'),sum(sh,'amount'),rv?(rv-co)/rv*100:null]});
  let h=pageHead(k,`<button class="btn sm" onclick="exportReport()">${esc(t('export'))}</button><button class="btn sm" onclick="sendSummary('reports')">${esc(t('send_tg'))}</button>`);
  const Q=[['📅',tt('每日生產與出貨','Daily production & shipping'),'D'],['🗓️',tt('每週訂單狀態','Weekly order status'),'W'],['📆',tt('每月成本與毛利','Monthly cost & margin'),'M'],['📈',tt('年度客戶獲利','Yearly customer profitability'),'Y'],['🧭',tt('自訂期間','Custom period'),'C']];
  h+=`<div class="kpis" style="margin-bottom:12px">${Q.map(r=>`<button class="kpi" style="text-align:left;cursor:pointer;${st.pt===r[2]?'outline:2px solid var(--accent)':''}" onclick="navPt('reports','${r[2]}')"><span class="l">${r[0]} ${esc(r[1])}</span><span class="d">${esc(t(r[2]))}</span></button>`).join('')}</div>`;
  h+=pnav(k,{views:true});
- const P=PM.dashboard; h+=`<div class="kpis">${P.metrics.map(m=>kpi(esc(m.l()),fmtM(m.f(Rg),m.ty))).join('')}</div>`;
+ h+=`<div class="kpis">${activeMetrics('reports').map(m=>kpi(esc(m.l()),fmtM(m.f(Rg),m.ty))).join('')||`<div class="note">${esc(t('no_data'))}</div>`}</div>`;
  h+=`<div class="panel mt"><h2>${tt('客戶彙總','By customer')} · ${esc(periodLabel(st.pt,Rg))}</h2><p class="hint">${esc(t('demo'))} · ${tt('訂單依接單日，出貨依出貨日','orders by order date, shipments by ship date')}</p><div class="tbl-wrap"><table class="t cards"><thead><tr><th>${esc(t('customer'))}</th><th class="r">${tt('訂單數','Orders')}</th><th class="r">${esc(t('order_qty'))}</th><th class="r">${tt('訂單金額','Order value')}</th><th class="r">${esc(t('ship_qty'))}</th><th class="r">${tt('出貨金額','Shipped value')}</th><th class="r">${tt('預估毛利率','Est. margin')}</th></tr></thead><tbody>
  ${byC.map(r=>`<tr><td class="lead" data-l="">${r[0]}</td><td class="r" data-l="${tt('訂單數','Orders')}">${fmt(r[1])}</td><td class="r" data-l="${esc(t('order_qty'))}">${fmt(r[2])}</td><td class="r" data-l="${tt('訂單金額','Order value')}">${money(r[3],0)}</td><td class="r" data-l="${esc(t('ship_qty'))}">${fmt(r[4])}</td><td class="r" data-l="${tt('出貨金額','Shipped value')}">${money(r[5],0)}</td><td class="r" data-l="%">${r[6]==null?'—':fmt(r[6],1)+'%'}</td></tr>`).join('')}</tbody>
  <tfoot><tr><td>${esc(t('total'))}</td><td class="r">${fmt(sum(byC,r=>r[1]))}</td><td class="r">${fmt(sum(byC,r=>r[2]))}</td><td class="r">${money(sum(byC,r=>r[3]),0)}</td><td class="r">${fmt(sum(byC,r=>r[4]))}</td><td class="r">${money(sum(byC,r=>r[5]),0)}</td><td></td></tr></tfoot></table></div></div>`;
@@ -1609,11 +2165,17 @@ function delHoliday(d){DB.holidays=(DB.holidays||[]).filter(h=>h.date!==d);HOL=n
 async function testGas(){const u=($('#gasUrl').value||'').trim();if(!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(u)){toast(tt('網址需是 …/exec 結尾的 Apps Script Web App','URL must be an Apps Script Web App ending in /exec'));return}
  syncCfg().gas=u;persist();const out=$('#gasOut');out.textContent=tt('連線中…','Connecting…');
  try{const r=await fetch(u+'?action=ping',{method:'GET'});const j=await r.json();out.textContent=j&&j.ok?('✓ '+j.app+' v'+j.version+' · '+(j.time||'')):JSON.stringify(j)}catch(e){out.textContent=tt('無法連線（預覽環境會擋外部連線；請在 GitHub Pages 上測試）','Cannot connect (this preview blocks outside calls; test on GitHub Pages)')}}
+function clearReal(step){if(!step){$('#clrBox').innerHTML=`<span class="small">${tt('確定清除這台瀏覽器裡所有已匯入的真實 ERP 資料？（ERP 本身不受影響，可再匯入）','Clear all imported real ERP data in this browser? (The ERP itself is untouched; you can import again.)')}</span> <button class="btn sm dng" onclick="clearReal(1)">${tt('確定清除','Clear')}</button> <button class="btn sm" onclick="rerender()">${esc(t('cancel'))}</button>`;return}
+ const keep={holidays:DB.holidays,sync:DB.sync,routing:DB.routing};DB=Object.assign(emptyDB(),keep);persist();updateDataRange();toast(tt('已清除','Cleared'));rerender()}
 function renderSettings(){
  const k='settings'; DB.modes=DB.modes||{}; const sc=syncCfg();
  const roles=[['Admin','全部','All modules'],['Management','總覽、報告、成本','Summary, reports, cost'],['PC','訂單、BOM、採購、生產','Orders, BOM, purchase, production'],['Purchase','採購、進貨、布料、輔料','Purchase, receiving, fabric, accessories'],['Warehouse','進貨、布料、輔料、成品','Receiving, fabric, accessories, FG'],['Production','生產、WIP、成品','Production, WIP, FG'],['Shipping','出貨、成品','Shipping, FG'],['Accounting','製造費用、成本、報告','Factory cost, costing, reports'],['Viewer','唯讀瀏覽','Read-only browsing']];
  const devs=LS.get('oneerp_devices',[{n:'ERP-PC (Windows)',last:'2026-10-03 16:02'},{n:'iPhone · Paul',last:ymd(TODAY)+' 08:12'}]);
  let h=pageHead(k);
+ h+=`<div class="panel" style="margin-bottom:14px"><h2>${tt('資料模式','Data mode')}</h2><p class="hint">${tt('真實資料：只顯示從 ERP 匯出檔匯入的數字，沒匯入的頁面會寫「還沒有真實資料」。示範資料：舊的假資料，只用來看畫面。','Real: only numbers imported from ERP export files; pages without imports say so. Demo: the old sample data, for looking at screens only.')}</p>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><div class="seg"><button class="${!isDemo()?'on':''}" onclick="setMode('real')">✅ ${tt('真實資料','Real data')}</button><button class="${isDemo()?'on':''}" onclick="setMode('demo')">🧪 ${tt('示範資料','Demo data')}</button></div>
+  <span class="small muted">${tt('真實資料：','Real data: ')}${fmt((DB.erpfiles||[]).length)} ${tt('個 ERP 檔','ERP files')} · ${tt('存在這台瀏覽器（IndexedDB）','stored in this browser (IndexedDB)')}</span></div>
+  ${!isDemo()?`<div id="clrBox" style="margin-top:10px"><button class="btn sm dng" onclick="clearReal()">${tt('清除這台裝置的真實資料（雲端不受影響，可再同步回來）','Clear real data on this device (cloud untouched; sync to get it back)')}</button></div>`:''}</div>`+(!isDemo()?cloudPanel():'');
  h+=`<div class="grid2"><div class="panel"><h2>${tt('語言與外觀','Language & appearance')}</h2><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px"><div class="lang">${['中','EN','ខ្មែរ'].map((l,i)=>`<button class="${LANG===i?'on':''}" onclick="setLang(${i})">${l}</button>`).join('')}</div><span class="st info">${tt('淺色介面（VRT 標準）','Light UI (VRT standard)')}</span></div>
   <p class="small muted" style="margin-top:10px">${tt('高棉文介面為初稿，正式上線前請本地同事校對。','Khmer UI text is a first draft — have a local colleague proofread before go-live.')}</p></div>
   <div class="panel"><h2>${tt('信任裝置','Trusted devices')}</h2>${devs.map((d,i)=>`<div style="display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line-2)"><span style="flex:1">${esc(d.n)}</span><span class="small muted">${esc(d.last)}</span><button class="btn sm dng" onclick="revokeDev(${i})">Revoke</button></div>`).join('')}
@@ -1667,12 +2229,14 @@ function route(){
  document.title=SOLO?`${t(CUR)} · VRT ERP`:'VRT ERP';
 }
 function applyStatic(){
+ const cb=$('#cloudBadge'); if(cb)paintCloudBadge(cb);
+ const mb=$('#modeBadge'); if(mb){mb.className='mode-badge '+(isDemo()?'demo':'real');mb.textContent=isDemo()?tt('🧪 示範資料','🧪 Demo data'):tt('✅ 真實資料','✅ Real data');}
  $$('[data-i]').forEach(el=>el.textContent=t(el.dataset.i)); $('#gsearch').placeholder=t('search_ph');
  $$('#langSw button').forEach(b=>b.classList.toggle('on',+b.dataset.l===LANG)); document.documentElement.lang=['zh-Hant','en','km'][LANG];
 }
 function bindPage(){
  const dz=$('#drop'); if(dz){dz.onclick=()=>$('#fileIn').click();dz.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('#fileIn').click()}};
-  dz.ondragover=e=>{e.preventDefault();dz.classList.add('over')};dz.ondragleave=()=>dz.classList.remove('over');dz.ondrop=e=>{e.preventDefault();dz.classList.remove('over');const f=e.dataTransfer.files[0];if(f)handleFile(f)}}
+  dz.ondragover=e=>{e.preventDefault();dz.classList.add('over')};dz.ondragleave=()=>dz.classList.remove('over');dz.ondrop=e=>{e.preventDefault();dz.classList.remove('over');const fs=e.dataTransfer.files;if(fs&&fs.length)handleFiles(fs)}}
  $$('.chart [data-tip]').forEach(el=>{el.onmousemove=e=>{const tp=$('#tip');tp.textContent=el.dataset.tip;tp.hidden=false;tp.style.left=Math.min(e.clientX+12,innerWidth-160)+'px';tp.style.top=(e.clientY-34)+'px'};el.onmouseleave=()=>$('#tip').hidden=true;
   el.ontouchstart=e=>{const tp=$('#tip');tp.textContent=el.dataset.tip;tp.hidden=false;const tt2=e.touches[0];tp.style.left=Math.min(tt2.clientX,innerWidth-160)+'px';tp.style.top=(tt2.clientY-44)+'px';setTimeout(()=>tp.hidden=true,1800)}});
 }
@@ -1682,18 +2246,22 @@ async function loadGasHolidays(){const u=syncCfg().gas;if(!u)return;try{const r=
  const rows=j.holidays.map(h=>({date:String(h.DATE||'').slice(0,10),name:String(h.NAME||'Factory Holiday'),closed:String(h.CLOSED||'YES'),src:'GAS'})).filter(h=>/^\d{4}-\d{2}-\d{2}$/.test(h.date));
  DB.holidays=rows.concat((DB.holidays||[]).filter(h=>h.src!=='GAS'&&!rows.some(x=>x.date===h.date)));HOL=null;PROD_CACHE.clear();persist();rerender()}catch(e){}}
 function showLogin(){$('#login').hidden=false;applyStatic()}
-function init(){
+async function init(){
+ $('#page').innerHTML=`<div class="note">${tt('載入資料中…','Loading data…')}</div>`;
+ await IDB.open(); await loadDB();
  document.documentElement.dataset.theme='light'; LS.set('oneerp_theme','light');
  $$('#langSw button').forEach(b=>b.onclick=()=>setLang(+b.dataset.l));
  $('#themeBtn').onclick=toggleTheme; $('#menuBtn').onclick=()=>$('#rail').classList.toggle('open');
  $('#scrim').onclick=closeDrawer; document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer()});
  $('#gsearch').oninput=e=>gsearch(e.target.value); document.addEventListener('click',e=>{if(!e.target.closest('.search'))$('#sres').hidden=true});
- $('#fileIn').onchange=e=>{const f=e.target.files[0];if(f)handleFile(f);e.target.value=''};
+ $('#fileIn').onchange=e=>{const fs=[...e.target.files];if(fs.length)handleFiles(fs);e.target.value=''};
  $('#loginForm').onsubmit=e=>{e.preventDefault();if($('#lgTrust').checked)LS.set('oneerp_trust',{user:$('#lgUser').value,at:nowStamp()});$('#login').hidden=true;audit('auth',$('#lgUser').value,'LOGIN',null,{trusted:$('#lgTrust').checked})};
  window.addEventListener('hashchange',route);
  if(!LS.get('oneerp_trust',null))showLogin();
  loadGasHolidays();
  route();
+ setTimeout(()=>cloudSync(false),400);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&cloudReady()&&(!CLOUD.last||Date.now()-new Date(CLOUD.last.replace(' ','T'))>3*60e3))cloudSync(false)});
 }
 init();
 </script></body></html>
