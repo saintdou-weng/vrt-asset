@@ -416,7 +416,7 @@ const T={
  compare:['比對中心','Compare Center','មជ្ឈមណ្ឌលប្រៀបធៀប'], exceptions:['異常中心','Exceptions','ករណីមិនប្រក្រតី'], reports:['報告','Reports','របាយការណ៍'],
  telegram:['Telegram','Telegram','Telegram'], audit:['稽核 / 回收','Audit & Trash','សវនកម្ម / ធុងសំរាម'], settings:['設定','Settings','ការកំណត់'],
  legacy_ro:['Legacy ERP 唯讀','Legacy ERP read-only','Legacy ERP អានតែប៉ុណ្ណោះ'],
- proto_note:['v0.5.1 · 真實資料來自 ERP 匯出檔，不連線 clothes.exe','v0.5 · real data from ERP export files; no link to clothes.exe','v0.5 · ទិន្នន័យពិតពីឯកសារ ERP'],
+ proto_note:['v0.6.0 · 真實資料來自 ERP 匯出檔，不連線 clothes.exe','v0.6.0 · real data from ERP export files; no link to clothes.exe','v0.5 · ទិន្នន័យពិតពីឯកសារ ERP'],
  order_year:['年份','Year','ឆ្នាំ'], size:['尺寸','Size','ទំហំ'], color_name:['顏色名稱','Colour name','ឈ្មោះពណ៌'],
  back_portal:['回總平台','Back to portal','ត្រឡប់ទៅវិបផតថល'], prod_entry:['VRT Prod 生產系統','VRT Prod production','ប្រព័ន្ធផលិតកម្ម VRT Prod'], erp_link_prod:['ERP 對照中心（在 VRT Prod）','ERP link centre (in VRT Prod)','មជ្ឈមណ្ឌលផ្គូផ្គង ERP (ក្នុង VRT Prod)'], search_ph:['搜尋 ERP Order、自編單號、PO、款式、料品、出貨單…','Search order, self key, PO, style, material, shipment…','ស្វែងរក Order, PO, ម៉ូដ, សម្ភារៈ…'],
  user:['使用者','User','អ្នកប្រើ'], password:['密碼','Password','ពាក្យសម្ងាត់'], trust:['信任此裝置（下次免登入）','Trust this device (skip login next time)','ទុកចិត្តឧបករណ៍នេះ'],
@@ -645,7 +645,7 @@ const IDB={_db:null,
  set(k,v){return new Promise(res=>{if(!this._db)return res(false);try{const tx=this._db.transaction('kv','readwrite');tx.objectStore('kv').put(v,k);tx.oncomplete=()=>res(true);tx.onerror=()=>res(false);tx.onabort=()=>res(false)}catch(e){console.error(e);res(false)}})}};
 let MODE=LS.get('psjerp_mode','real'); if(MODE!=='demo')MODE='real';
 function emptyDB(){return {_v:5,_mode:'real',orders:[],bom:[],purchase:[],receiving:[],fabric:[],accessories:[],shipping:[],production:[],fg:[],factorycost:[],accwip:[],
- importlog:[],audit:[],trash:[],cmpres:[],syncruns:[],tglog:[],holidays:[],erpfiles:[],fabsnaps:{},accsnaps:{},asof:{},ordidx:{},smv:[]}}
+ importlog:[],audit:[],trash:[],cmpres:[],syncruns:[],tglog:[],holidays:[],erpfiles:[],fabsnaps:{},accsnaps:{},asof:{},ordidx:{},smv:[],price:[],stockmove:[],fgstock:[],fgsnaps:{},labor:[],tpl:[]}}
 let DB=emptyDB();
 const dbKey=()=>MODE==='demo'?'db_demo_v5':'db_real_v5';
 let SAVE_OK=true;
@@ -665,7 +665,7 @@ const isDemo=()=>DB&&DB._mode==='demo';
 function updateDataRange(){
  if(isDemo()){DATA_Y0=TODAY.getFullYear()-2}
  else{let y=TODAY.getFullYear();const see=s=>{if(!s)return;const n=+String(s).slice(0,4);if(n>1990&&n<y)y=n};
-  DB.orders.forEach(o=>{see(o.order_date);see(o.order_year)});DB.fg.forEach(g=>see(g.fg_date));DB.bom.forEach(b=>see(b.order_date));DB.shipping.forEach(s=>see(s.ship_date));DB.purchase.forEach(p=>see(p.purchase_date));DB.receiving.forEach(r=>see(r.recv_date));
+  DB.orders.forEach(o=>{see(o.order_date);see(o.order_year)});DB.fg.forEach(g=>see(g.fg_date));DB.bom.forEach(b=>see(b.order_date));DB.shipping.forEach(s=>see(s.ship_date));DB.purchase.forEach(p=>see(p.purchase_date));DB.receiving.forEach(r=>see(r.recv_date));(DB.price||[]).forEach(p=>see(p.purchase_date));(DB.stockmove||[]).forEach(p=>see(p.year));
   Object.keys(DB.fabsnaps||{}).forEach(see);DATA_Y0=y}
  DATA_START=new Date(DATA_Y0,0,1);
 }
@@ -733,7 +733,7 @@ function parseCST580(aoa,file){
   rec.sizes=sz.join(' '); if(sz.length&&Math.abs(ss-rec.erp_qty)>0.01)bad++; rows.push(rec); i+=2;
  }
  const cr=criteria(aoa,'入庫日期'); const from=cr&&cr[0]?xlDate(cr[0]):'', to=cr&&cr[1]?xlDate(cr[1]):'';
- const ds=rows.map(r=>r.fg_date).sort(); const checks=[{ok:bad===0,msg:bad?`${bad} 筆尺碼合計 ≠ 數量`:'每一筆尺碼合計 = 數量'}];
+ const ds=rows.map(r=>r.fg_date).sort(); const checks=[{ok:bad===0?true:null,msg:bad?`${bad} 筆尺碼合計 ≠ 數量（ERP 原始資料如此，仍以數量欄為準）`:'每一筆尺碼合計 = 數量'}];
  checks.push({ok:null,msg:'這張報表沒有合計列，總數以逐筆加總為準'});
  return {rep:'cst580',rows,meta:{key:'cst580|'+(from||'')+'|'+(to||file.name),asof:listDate(aoa),label:from?`入庫日 ${from} ～ ${to}`:file.name,range:from?[from,to]:[ds[0],ds[ds.length-1]],totals:{qty:sum(rows,'erp_qty'),n:rows.length},dataRange:[ds[0],ds[ds.length-1]]},checks};
 }
@@ -772,30 +772,34 @@ function parseCOD550(aoa,file){
  checks.push({ok:null,msg:'BOM 匯出沒有料號，也沒有單價（料價需另匯 W_CPU795）'});
  return {rep:'cod550',rows,heads,meta:{key:'cod550|'+from+'|'+to,label:from?`自編單號 ${from} ～ ${to}`:file.name,range:[ds[0]||'',ds[ds.length-1]||''],asof:listDate(aoa),totals:{orders:heads.length,lines:rows.length}},checks};
 }
-const PARSERS={parseCOD690,parseCST580,parseSTK,parseCOD550};
+const PARSERS={parseCOD690,parseCST580,parseSTK,parseCOD550,parseCPU35x,parseCST54x,parseCST302,parseCBL300,parseCPU795,parseCOD700,parseSMV};
 
 /* ---------------- apply a parsed report into the cloud store ---------------- */
 function erpMeta(file,P,i){return {source_system:'LEGACY_ERP',source_record_id:(REPORTS.find(r=>r.k===P.rep)||{}).fn+'#'+i,source_file:file,import_batch_id:P.batch,import_key:P.meta.key,synced_at:nowStamp()}}
 function ordKey(my,po){return keyN(my)+'|'+keyN(po)}
 function enrichOrders(){const idx=DB.ordidx||{};let n=0;DB.orders.forEach(o=>{const x=idx[keyN(o.my_no)];if(!x)return;if(!o.order_date&&x.date){o.order_date=x.date;n++}if(!o.cust&&x.cust)o.cust=x.cust;if(!o.od_no&&x.od_no)o.od_no=x.od_no;if(!o.style&&x.style)o.style=x.style});return n}
-const REP_DS={cod690:'orders',cst580:'fg',cod550:'bom',stkmain:'fabric',stktrim:'accessories'};
-const REP_SHEET={cod690:'ORDERS',cst580:'FG',cod550:'BOM',stkmain:'FABRIC',stktrim:'ACCESS'};
+const REP_DS={cod690:'orders',cod700:'orders',cst580:'fg',cod550:'bom',stkmain:'fabric',stktrim:'accessories',cst302:'fgstock',cpu350:'purchase',cpu340:'purchase',cpu795:'price',cst541:'stockmove',cst551:'stockmove',cbl300:'shipping',cba190:'smv'};
+const REP_SHEET={cod690:'ORDERS',cod700:'ORDERS',cst580:'FG',cod550:'BOM',stkmain:'FABRIC',stktrim:'ACCESS',cst302:'FG_STOCK',cpu350:'PURCHASE',cpu340:'PURCHASE',cpu795:'PURCHASE_PRICE',cst541:'STOCK_MOVE',cst551:'STOCK_MOVE',cbl300:'SHIP',cba190:'SMV'};
 function buildRecords(P,fileName){
  if(P.rep==='cod690')return P.rows.map(r=>({id:nid('q'),od_no:'',od_seq:'',my_no:r.my_no,po_no:r.po_no,cust:'',style:'',style_name:r.style_name,clr:r.clr,order_date:'',order_year:P.meta.year||null,delivery:'',
   qty:r.qty,price:null,currency:'',cut_qty:r.cut_qty,fg_qty:r.fg_qty,ship_qty:r.ship_qty,status:r.ship_qty>=r.qty&&r.qty>0?'closed':'open',smv:null,...erpMeta(fileName,P,r._row)}));
  if(P.rep==='cst580')return P.rows.map(r=>({id:nid('r'),od_no:'',...r,...erpMeta(fileName,P,r._row)}));
  if(P.rep==='stkmain'||P.rep==='stktrim')return P.rows.map(r=>({id:nid(P.rep==='stkmain'?'f':'a'),...r,lot:'',location:'',received:null,issued:null,allocated:null,available:null,wh_count:null,...erpMeta(fileName,P,r._row)}));
  if(P.rep==='cod550')return P.rows.map(r=>({id:nid('b'),...r,...erpMeta(fileName,P,r._row)}));
+ if(P.rep==='cod700')return P.rows.map(r=>({id:nid('o'),...r,cut_qty:0,fg_qty:0,status:r.closed_date?'closed':'open',...erpMeta(fileName,P,r._row)}));
+ if(P.rep==='cst302')return P.rows.map(r=>({id:nid('k'),...r,...erpMeta(fileName,P,r._row)}));
+ if(['cpu350','cpu340','cpu795','cst541','cst551','cbl300','cba190'].includes(P.rep))return P.rows.map(r=>({id:nid({cpu350:'pm',cpu340:'pf',cpu795:'pp',cst541:'mm',cst551:'mf',cbl300:'s',cba190:'v'}[P.rep]),...r,...erpMeta(fileName,P,r._row)}));
  return [];
 }
 /* put one batch of finished records into the store (used by import and by cloud download) */
 function storeBatch(rep,key,meta,recs){
  let removed=0; const ds=REP_DS[rep];
- if(rep==='stkmain'||rep==='stktrim'){const sn=rep==='stkmain'?'fabsnaps':'accsnaps'; const asof=meta.asof; const cur=DB.asof[ds];
+ if(SNAPREP[rep]){const sn=SNAPREP[rep][1]; DB[sn]=DB[sn]||{}; const asof=meta.asof; const cur=DB.asof[ds];
   Object.keys(DB[sn]).forEach(d=>{if(d===asof){removed+=DB[sn][d].length;delete DB[sn][d]}});
   if(!cur||asof>=cur){if(cur&&cur!==asof&&DB[ds].length)DB[sn][cur]=DB[ds].filter(x=>!x.deleted_at);if(cur===asof)removed+=DB[ds].length;DB[ds]=recs;DB.asof[ds]=asof}
   else DB[sn][asof]=recs}
- else{const before=DB[ds].length;DB[ds]=DB[ds].filter(x=>x.import_key!==key);removed=before-DB[ds].length;for(const r of recs)DB[ds].push(r)}
+ else{const before=DB[ds].length;if(rep==='cod550'){const ods=new Set(recs.map(r=>r.od_no).filter(Boolean));DB[ds]=DB[ds].filter(x=>x.import_key!==key&&!(ods.has(x.od_no)&&x.source_system==='LEGACY_ERP'))}else DB[ds]=DB[ds].filter(x=>x.import_key!==key);removed=before-DB[ds].length;for(const r of recs)DB[ds].push(r)}
+ if(rep==='cod700'){DB.ordidx=DB.ordidx||{};recs.forEach(o=>{const k=keyN(o.my_no);const x=DB.ordidx[k]||(DB.ordidx[k]={});if(!x.date)x.date=o.order_date;if(!x.cust)x.cust=o.cust;if(!x.style)x.style=o.style;if(!x.od_no&&o.od_no)x.od_no=o.od_no})}
  if(rep==='cod550'){DB.ordidx=DB.ordidx||{};recs.forEach(b=>{if(b.my_no&&!DB.ordidx[keyN(b.my_no)])DB.ordidx[keyN(b.my_no)]={od_no:b.od_no,date:b.order_date,cust:b.cust,style:b.style}})}
  const updated=enrichOrders();
  DB.erpfiles=(DB.erpfiles||[]).filter(f=>f.key!==key); DB.erpfiles.unshift(meta);
@@ -820,7 +824,7 @@ const cloudReady=()=>!isDemo()&&/\/exec$/.test(cloudUrl())&&!!cloudKey();
 async function cget(params){const q=new URLSearchParams(Object.assign({k:cloudKey()},params)).toString();const r=await fetch(cloudUrl()+'?'+q);const j=await r.json();if(!j.ok)throw new Error(j.msg||j.error||'error');return j}
 async function cpost(body){const r=await fetch(cloudUrl(),{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({api:'psjerp',k:cloudKey()},body))});const j=await r.json();if(!j.ok)throw new Error(j.msg||j.error||'error');return j}
 function batchRecs(f){const ds=REP_DS[f.rep];if(!ds)return [];
- if(f.rep==='stkmain'||f.rep==='stktrim'){const sn=f.rep==='stkmain'?'fabsnaps':'accsnaps';return (DB.asof[ds]===f.asof?DB[ds]:(DB[sn][f.asof]||[])).filter(r=>r.import_key===f.key)}
+ if(SNAPREP[f.rep]){const sn=SNAPREP[f.rep][1];return (DB.asof[ds]===f.asof?DB[ds]:((DB[sn]||{})[f.asof]||[])).filter(r=>r.import_key===f.key)}
  return DB[ds].filter(r=>r.import_key===f.key)}
 const SKIP_COLS=new Set(['notes','tags','_nat','deleted_at','deleted_by','_row','_snap','_orig','_ovr','att']);
 function cloudSetState(st,msg){CLOUD.state=st;CLOUD.msg=msg||'';const b=$('#cloudBadge');if(b)paintCloudBadge(b)}
@@ -828,12 +832,12 @@ function paintCloudBadge(b){if(isDemo()){b.hidden=true;return}b.hidden=false;
  const m={idle:['☁️',tt('雲端','Cloud')],off:['☁️',tt('雲端未連線','Cloud off')],busy:['🔄',CLOUD.msg||tt('同步中…','Syncing…')],ok:['☁️',tt('已同步 ','Synced ')+(CLOUD.last||'').slice(11,16)],err:['⚠️',tt('同步失敗','Sync failed')]}[cloudReady()?CLOUD.state:'off'];
  b.className='cloud-badge '+(cloudReady()?CLOUD.state:'off');b.textContent=m[0]+' '+m[1];b.title=CLOUD.msg||''}
 async function pushBatch(f){
- const recs=batchRecs(f); const cols=[...new Set(recs.flatMap(r=>Object.keys(r)))].filter(c=>!SKIP_COLS.has(c));
- const types=cols.map(c=>recs.some(r=>typeof r[c]==='number')?'n':recs.every(r=>r[c]==null)?'z':'s'); const n=Math.max(1,Math.ceil(recs.length/2500)); let ver=null;
+ const recs=batchRecs(f); const META_COLS=new Set(['source_system','source_record_id','source_file','import_batch_id','import_key','synced_at']); let cols=[...new Set(recs.flatMap(r=>Object.keys(r)))].filter(c=>!SKIP_COLS.has(c)&&!META_COLS.has(c)&&recs.some(r=>r[c]!=null&&r[c]!==''));
+ const types=cols.map(c=>recs.some(r=>typeof r[c]==='number')?'n':'s'); const n=Math.max(1,Math.ceil(recs.length/2500)); let ver=null;
  for(let i=0;i<n;i++){const chunk=recs.slice(i*2500,(i+1)*2500).map(r=>cols.map(c=>r[c]==null?null:(typeof r[c]==='object'?JSON.stringify(r[c]):r[c])));
   cloudSetState('busy',tt('上傳 ','Uploading ')+f.fn+' '+(i+1)+'/'+n);
   const meta=i===n-1?{rep:f.rep,fn:f.fn,file:f.file,label:f.label,range:f.range,asof:f.asof,year:f.year,totals:f.totals,checks:f.checks,at:f.at,batch:f.batch,user:'paul.weng'}:null;
-  const j=await cpost({action:'erp_put',sheet:REP_SHEET[f.rep],key:f.key,part:i,cols,types,rows:chunk,meta}); if(j.version)ver=j.version}
+  const j=await cpost({action:'erp_put',sheet:REP_SHEET[f.rep],key:f.key,part:i,total:recs.length,cols,types,rows:chunk,meta}); if(j.version)ver=j.version}
  f.version=ver; f.dirty=false;
 }
 const PJ=v=>{if(v==null||v==='')return null;if(typeof v!=='string')return v;try{return JSON.parse(v)}catch(e){return v}};
@@ -843,7 +847,7 @@ async function pullBatch(m){
   const j=await cget({action:'erp_get',sheet:m.sheet,key:m.key,offset:off,limit:3000}); rows=rows.concat(j.rows); total=j.total; off+=3000}while(off<total);
  const C=rows.length?(await Promise.resolve(cols)):cols;
  const recs=rows.map(a=>{const o={};C.forEach((c,i)=>{let v=a[i];if(types[i]==='n'){v=(v===''||v==null)?null:+v}else if(types[i]==='z')v=null;else v=v==null?'':String(v);o[c]=v});return o});
- recs.forEach(r=>{if(r.order_year==='')r.order_year=null});
+ recs.forEach((r,i)=>{if(r.order_year==='')r.order_year=null;if(!r.source_system){r.source_system='LEGACY_ERP';r.source_record_id=(m.fn||m.rep)+'#'+(i+1);r.source_file=m.file;r.import_batch_id=m.batch;r.import_key=m.key;r.synced_at=m.at}});
  const meta={key:m.key,rep:m.rep,fn:m.fn,file:m.file,rows:recs.length,label:m.label,range:PJ(m.range),asof:m.asof||'',year:m.year?+m.year:null,totals:PJ(m.totals),checks:PJ(m.checks)||[],at:m.at,batch:m.batch,version:String(m.version),dirty:false,cloud:true};
  storeBatch(m.rep,m.key,meta,recs);
 }
@@ -858,6 +862,7 @@ async function cloudSync(manual){
   const justPushed=new Set();
   for(const f of (DB.erpfiles||[]).filter(f=>f.dirty||!f.version)){await pushBatch(f);justPushed.add(f.key);pushed++;persist()}
   for(const m of files){if(justPushed.has(m.key))continue;const loc=(DB.erpfiles||[]).find(f=>f.key===m.key);if(loc&&(loc.dirty||String(loc.version)===String(m.version)))continue;await pullBatch(m);pulled++;persist()}
+  await syncTpl(man);
   for(const n of NOTEQ.splice(0)){await cpost({action:'erp_note',id:n.id,ds:n.ds,notes:n.notes,tags:n.tags,user:'paul.weng'})}
   (man.notes||[]).forEach(n=>{const arr=DB[n.ds]||[];const r=arr.find(x=>x.id===n.id);if(!r)return;if(r._nat&&r._nat>String(n.at))return;r.notes=String(n.notes||'');r.tags=String(n.tags||'').split(',').map(x=>x.trim()).filter(Boolean);r._nat=String(n.at)});
   CLOUD.last=nowStamp(); LS.set('psjerp_cloud_last',CLOUD.last); cloudSetState('ok'); persist();
@@ -873,7 +878,7 @@ function cloudBanner(){
 }
 function cloudPanel(){
  const F=DB.erpfiles||[], unsynced=F.filter(f=>f.dirty||!f.version).length;
- return `<div class="panel mt"><h2>☁️ ${tt('雲端同步（Google Sheets）','Cloud sync (Google Sheets)')}</h2><p class="hint">${tt('匯入的 ERP 資料會自動上傳到 Google Sheet「PSJERP_ERPDATA」；其他裝置打開網頁會自動下載。讀寫都要同步密碼。','Imported ERP data uploads to the Google Sheet "PSJERP_ERPDATA"; other devices download it on open. Reading and writing need the sync password.')}</p>
+ return `<div class="panel mt"><h2>☁️ ${tt('雲端同步（Google Sheets）','Cloud sync (Google Sheets)')}</h2><p class="hint">${tt('匯入的 ERP 資料會自動上傳到 Google 雲端（每種資料一個試算表 PSJERP_ERP_*，每個匯入批次一個分頁；索引在 PSJERP_ERPDATA）；其他裝置打開網頁會自動下載。讀寫都要同步密碼。','Imported ERP data uploads to the Google Sheet "PSJERP_ERPDATA"; other devices download it on open. Reading and writing need the sync password.')}</p>
  <div class="form"><div class="field"><label for="ckSet">${tt('同步密碼','Sync password')}</label><input class="inp mono" id="ckSet" value="${esc(cloudKey())}" placeholder="VRT-XXXX-XXXX" autocomplete="off"></div>
  <div class="field"><label>${esc(t('status'))}</label><div style="padding:7px 0">${cloudReady()?(CLOUD.state==='err'?stChip('crit',tt('失敗：','Failed: ')+CLOUD.msg):stChip('good',tt('已連線','Connected'))):stChip('warn',tt('未連線','Not connected'))} <span class="small muted">${tt('上次同步 ','Last sync ')}${esc(CLOUD.last||'—')}</span></div></div></div>
  <div class="kv" style="margin-top:8px"><div><dt>${tt('這台裝置的 ERP 批次','ERP batches on this device')}</dt><dd>${fmt(F.length)}</dd></div><div><dt>${tt('尚未上傳','Not uploaded yet')}</dt><dd>${fmt(unsynced)}</dd></div><div><dt>${tt('雲端批次','Cloud batches')}</dt><dd>${CLOUD.files?fmt(CLOUD.files):'—'}</dd></div><div><dt>Google Sheet</dt><dd>${CLOUD.url?`<a href="${esc(CLOUD.url)}" target="_blank" rel="noopener">PSJERP_ERPDATA ↗</a>`:'—'}</dd></div></div>
@@ -977,11 +982,12 @@ const SNAP_FIELDS={fabric:r=>{const k=r._k;const f=0.55+0.9*hsh(r.id+k);const ba
 function asOfDate(R){return R.to>TODAY?new Date(TODAY):new Date(R.to)}
 function snapKeyDate(d){const ms=new Date(TODAY.getFullYear(),TODAY.getMonth(),1);if(d>=ms)return null;const me=new Date(d.getFullYear(),d.getMonth()+1,0);return me>d?new Date(d.getFullYear(),d.getMonth(),0):me}
 function snapRows(k,d){
- if(!isDemo()){const ds=k==='accessories'?'accessories':'fabric', sn=ds==='fabric'?'fabsnaps':'accsnaps'; const cur=DB.asof&&DB.asof[ds];
+ if(!isDemo()){const [ds,sn]=SNAPK[k]||SNAPK.fabric; const cur=DB.asof&&DB.asof[ds];
   const dates=Object.keys(DB[sn]||{}).concat(cur?[cur]:[]).sort(); const target=ymd(d>TODAY?TODAY:d); let pick=null; dates.forEach(x=>{if(x<=target)pick=x});
   if(!pick)return {rows:[],asof:dates.length?tt('早於 ','before ')+dates[0]:'—',live:false,none:true};
   if(pick===cur)return {rows:live(DB[ds]),asof:pick,live:true};
   return {rows:(DB[sn][pick]||[]).map(r=>({...r,id:r.id+'@'+pick,_snap:pick})),asof:pick,live:false}}
+ if(!SNAP_FIELDS[k])return {rows:live(CFG[k].data()),asof:ymd(d>TODAY?TODAY:d),live:true};
  const base=live(CFG[k].data()); const kd=snapKeyDate(d); if(!kd)return {rows:base,asof:ymd(d>TODAY?TODAY:d),live:true};
  if(kd<DATA_START)return {rows:[],asof:ymd(kd),live:false};
  const key=ymd(kd); return {rows:base.filter(r=>r.source_system==='LEGACY_ERP').map(r=>({...r,...SNAP_FIELDS[k]({...r,_k:key}),id:r.id+'@'+key,_snap:key})),asof:key,live:false};
@@ -1034,9 +1040,9 @@ const ISSUE_ST={todo:['待處理','To do','warn'],confirm:['待確認','To confi
 /* ================= navigation ================= */
 const MODS=[
  ['dashboard','📊','g_over'],['smart-import','🧠','g_over'],
- ['orders','🧾','g_mat'],['bom','🧵','g_mat'],['purchase','🛒','g_mat'],['receiving','📥','g_mat'],['fabric','🧶','g_mat'],['accessories','🧷','g_mat'],
- ['production','🏭','g_prod'],['wip','⏳','g_prod'],['finished-goods','📦','g_prod'],['shipping','🚢','g_prod'],
- ['factory-cost','💰','g_cost'],['costing','🧮','g_cost'],
+ ['orders','🧾','g_mat'],['bom','🧵','g_mat'],['purchase','🛒','g_mat'],['pprice','🏷️','g_mat'],['receiving','📥','g_mat'],['fabric','🧶','g_mat'],['accessories','🧷','g_mat'],['stockmove','🔁','g_mat'],
+ ['production','🏭','g_prod'],['wip','⏳','g_prod'],['finished-goods','📦','g_prod'],['fgstock','🗃️','g_prod'],['shipping','🚢','g_prod'],
+ ['factory-cost','💰','g_cost'],['labor','👷','g_cost'],['costing','🧮','g_cost'],
  ['sync','🔄','g_hub'],['compare','🔍','g_hub'],['exceptions','⚠️','g_hub'],['reports','📑','g_hub'],
  ['telegram','✈️','g_sys'],['audit','🗂️','g_sys'],['settings','⚙️','g_sys'],
 ];
@@ -1063,8 +1069,8 @@ function navCount(k){
    [D][W][M][Y][Custom]   ◀ [dropdowns] ▶ [本期]   [明細][趨勢][比較]
    Flow metrics = SUM within the period. Snapshot metrics = value "As of" the period end. */
 const ST={};
-const S=k=>ST[k]||(ST[k]=Object.assign({pt:'M',anchor:ymd(TODAY),view:'list',cmp:'prev',cmpAnchor:null,from:ymd(new Date(TODAY.getFullYear(),TODAY.getMonth(),1)),to:ymd(TODAY),from2:'',to2:'',q:'',page:0,cust:'',onlyDiff:false},LS.get('psjerp_nav5_'+k,{})));
-const saveNav=k=>{const s=S(k);LS.set('psjerp_nav5_'+k,{pt:s.pt,anchor:s.anchor,view:s.view,cmp:s.cmp,from:s.from,to:s.to})};
+const S=k=>ST[k]||(ST[k]=initST(k));
+const saveNav=k=>{const s=S(k);LS.set('psjerp_nav6_'+k,{pt:s.pt,anchor:s.anchor,view:s.view,cmp:s.cmp,from:s.from,to:s.to})};
 const WD=()=>LANG===0?['一','二','三','四','五','六','日']:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const MN=m=>LANG===0?(m+1)+'月':LANG===2?['មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា','កក្កដា','សីហា','កញ្ញា','តុលា','វិច្ឆិកា','ធ្នូ'][m]:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m];
 function isoWeek(d){const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()-((x.getDay()+6)%7)+3);const y=x.getFullYear();const j4=new Date(y,0,4);return {y,w:1+Math.round(((x-j4)/864e5-3+((j4.getDay()+6)%7))/7)}}
@@ -1105,15 +1111,15 @@ function cmpRange(st){
  if(st.cmp==='yoy'){if(st.pt==='W'){const w=isoWeek(a);return rangeFor('W',weekStart(w.y-1,Math.min(w.w,weeksIn(w.y-1))))}return rangeFor(st.pt,new Date(a.getFullYear()-1,a.getMonth(),Math.min(a.getDate(),28)))}
  return rangeFor(st.pt,shiftDate(st.pt,a,-1));
 }
-const yearOpts=sel=>{let h='';for(let y=TODAY.getFullYear();y>=DATA_Y0;y--)h+=`<option value="${y}" ${y===sel?'selected':''}>${y}</option>`;return h};
+const yearOpts=(sel,k)=>{const PK=k?periodKeys(k):null;let h='';for(let y=TODAY.getFullYear();y>=DATA_Y0;y--)h+=`<option value="${y}" ${y===sel?'selected':''}>${PK&&PK.has(String(y))?'● ':''}${y}</option>`;return h};
 function selectorsHTML(k,pt,anchor,st,cmp){
  const a=parseD(anchor)||TODAY, id=(cmp?'c':'p')+'_'+k.replace(/[^a-z]/g,''), fn=cmp?'navSetC':'navSet';
  if(pt==='D')return `<input class="inp pn-date" type="date" id="${id}d" value="${ymd(a)}" max="${ymd(TODAY)}" onchange="${fn}('${k}',this.value)">`;
  if(pt==='W'){const w=isoWeek(a);let o='';for(let i=1;i<=weeksIn(w.y);i++){const s=weekStart(w.y,i);if(s>TODAY)break;o+=`<option value="${ymd(s)}" ${i===w.w?'selected':''}>W${pad(i)} · ${md(s)}–${md(addD(s,6))}</option>`}
-  return `<select class="inp" id="${id}y" onchange="${fn}('${k}',ymd(weekStart(+this.value,1)))">${yearOpts(w.y)}</select><select class="inp" id="${id}w" onchange="${fn}('${k}',this.value)">${o}</select>`}
- if(pt==='M'){let o='';for(let m=0;m<12;m++){const dis=new Date(a.getFullYear(),m,1)>TODAY;o+=`<option value="${m}" ${m===a.getMonth()?'selected':''} ${dis?'disabled':''}>${MN(m)}</option>`}
-  return `<select class="inp" id="${id}y" onchange="${fn}('${k}',ymd(new Date(+this.value,Math.min(${a.getMonth()},this.value==TODAY.getFullYear()?TODAY.getMonth():11),1)))">${yearOpts(a.getFullYear())}</select><select class="inp" id="${id}m" onchange="${fn}('${k}',ymd(new Date(${a.getFullYear()},+this.value,1)))">${o}</select>`}
- if(pt==='Y')return `<select class="inp" id="${id}y" onchange="${fn}('${k}',this.value+'-01-01')">${yearOpts(a.getFullYear())}</select>`;
+  return `<select class="inp" id="${id}y" onchange="${fn}('${k}',ymd(weekStart(+this.value,1)))">${yearOpts(w.y,k)}</select><select class="inp" id="${id}w" onchange="${fn}('${k}',this.value)">${o}</select>`}
+ if(pt==='M'){let o='';for(let m=0;m<12;m++){const dis=new Date(a.getFullYear(),m,1)>TODAY;o+=`<option value="${m}" ${m===a.getMonth()?'selected':''} ${dis?'disabled':''}>${periodKeys(k).has(a.getFullYear()+'-'+pad(m+1))?'● ':''}${MN(m)}</option>`}
+  return `<select class="inp" id="${id}y" onchange="${fn}('${k}',ymd(new Date(+this.value,Math.min(${a.getMonth()},this.value==TODAY.getFullYear()?TODAY.getMonth():11),1)))">${yearOpts(a.getFullYear(),k)}</select><select class="inp" id="${id}m" onchange="${fn}('${k}',ymd(new Date(${a.getFullYear()},+this.value,1)))">${o}</select>`}
+ if(pt==='Y')return `<select class="inp" id="${id}y" onchange="${fn}('${k}',this.value+'-01-01')">${yearOpts(a.getFullYear(),k)}</select>`;
  if(pt==='C'&&!cmp)return `<input class="inp pn-date" type="date" id="${id}f" value="${esc(st.from)}" onchange="S('${k}').from=this.value;navDone('${k}')"><span class="muted">→</span><input class="inp pn-date" type="date" id="${id}t" value="${esc(st.to)}" onchange="S('${k}').to=this.value;navDone('${k}')">`;
  if(pt==='C'&&cmp)return `<input class="inp pn-date" type="date" id="${id}f" value="${esc(st.from2||'')}" onchange="S('${k}').from2=this.value;navDone('${k}')">`;
  return '';
@@ -1279,7 +1285,7 @@ Object.values(PM).forEach(P=>P.metrics.forEach(m=>{if(m.src&&!m.f)m.f=R=>m.g(row
 function activeMetrics(k){const P=PM[k];if(!P)return [];return P.metrics.filter(m=>{
  if(m.demo&&!isDemo())return false; if(m.needF&&!m.needF())return false;
  if(m.src){const rows=SRCS[m.src].rows();if(!rows.length)return false;if(m.need&&!m.need(rows))return false}
- if(P.snap&&!m.demo&&!isDemo()){const ds=k==='accessories'?'accessories':'fabric';if(!live(DB[ds]).length&&!Object.keys(DB[ds==='fabric'?'fabsnaps':'accsnaps']||{}).length)return false}
+ if(P.snap&&!m.demo&&!isDemo()&&SNAPK[k]){const [ds,sn]=SNAPK[k];if(!live(DB[ds]).length&&!Object.keys(DB[sn]||{}).length)return false}
  return true})}
 const COSTC=new Map();
 function costAgg(R){const key=ymd(R.from)+ymd(R.to)+(DB.audit.length);if(COSTC.has(key))return COSTC.get(key);const ok=flowOrders(R).map(o=>({o,c:costOrder(o,'latest')})).filter(x=>x.c.total!=null);const r={rev:sum(ok,x=>x.o.qty*x.o.price),cost:sum(ok,x=>x.o.qty*x.c.total)};COSTC.set(key,r);return r}
@@ -1290,7 +1296,7 @@ const keyRange=k=>{if(/^\d{4}$/.test(k))return {from:new Date(+k,0,1),to:new Dat
 const keySort=k=>/^Y\d{4}$/.test(k)?k.slice(1)+'-00':k;
 function snapKeys(k,unit){
  if(isDemo()){const out=[];for(let d=new Date(DATA_START);d<=TODAY;d=new Date(d.getFullYear(),d.getMonth()+1,1)){const key=unit==='Y'?String(d.getFullYear()):monthKey(d);if(!out.includes(key))out.push(key)}return out}
- const ds=k==='accessories'?'accessories':'fabric', sn=ds==='fabric'?'fabsnaps':'accsnaps';const dates=Object.keys(DB[sn]||{});if(DB.asof&&DB.asof[ds])dates.push(DB.asof[ds]);
+ const [ds,sn]=SNAPK[k]||SNAPK.fabric;const dates=Object.keys(DB[sn]||{});if(DB.asof&&DB.asof[ds])dates.push(DB.asof[ds]);
  return [...new Set(dates.map(d=>unit==='Y'?d.slice(0,4):d.slice(0,7)))];
 }
 function listRows(k,unit){
@@ -1317,7 +1323,7 @@ function renderList(k){
  <div class="tbl-wrap"><table class="t list"><thead><tr><th>${tt('期間','Period')}</th>${ms.map(m=>`<th class="r">${esc(m.l())}</th>`).join('')}</tr></thead><tbody>
  ${rows.map(r=>`<tr class="click ${r.key===selKey?'sel':''}" onclick="drill('${k}','${unit}','${ymd(r.R.from)}')"><td class="per">${/^Y/.test(r.key)?r.key.slice(1)+` <span class="small muted">${tt('（無月份）','(no month)')}</span>`:esc(r.key)}${P.snap?` <span class="small muted">As of ${esc(ymd(asOfDate({to:r.R.to})))}</span>`:''}</td>${r.v.map((v,i)=>`<td class="r ${i===pi?'pm':''}">${ms[i].ty==='pct'&&v!=null?`<span class="pill">${fmt(v,1)}%</span>`:fmtM(v,ms[i].ty)}</td>`).join('')}</tr>`).join('')}</tbody>
  ${P.snap?'':`<tfoot><tr><td>${esc(t('total'))}</td>${ms.map((m,i)=>`<td class="r">${addable[i]?fmtM(sum(rows,r=>+r.v[i]||0),m.ty):''}</td>`).join('')}</tr></tfoot>`}</table></div>
- ${rows.some(r=>/^Y/.test(r.key))?`<p class="small muted" style="margin:8px 0 0">${tt('「無月份」：W_COD690 訂單統計表沒有接單日，只能算進年報；匯入 W_COD700 訂單總表（或 BOM）後會自動分到月份。','"No month": W_COD690 has no order date, so these rows count in the yearly report only; importing W_COD700 (or BOM) assigns them to months automatically.')}</p>`:''}</div>`;
+ ${rows.some(r=>/^Y/.test(r.key))?`<p class="small muted" style="margin:8px 0 0">${tt('「無月份」：只有年份的資料（W_COD690 訂單統計表、進耗存年度總表）只能算進年報；訂單匯入 W_COD700 後會自動分到月份。','"No month": year-only data (W_COD690, yearly movement reports) counts in the yearly report only; importing W_COD700 assigns orders to months.')}</p>`:''}</div>`;
  return h;
 }
 
@@ -1429,7 +1435,8 @@ function cell(r,c){
 }
 const isNumCol=c=>['num','n1','n2','n3','money','money3','pct','smv'].includes(c.tp);
 function filterRows(k){
- const cfg=CFG[k],st=S(k); let rows=cfg.snap?snapRows(k,asOfDate(rangeOf(st))).rows:live(cfg.data());
+ const cfg=CFG[k],st=S(k); let rows=cfg.snap?snapRows(k,asOfDate(rangeOf(st))).rows:baseRows(k);
+ if(cfg.yearF){const R=rangeOf(st);if(!R.all)rows=rows.filter(r=>{const y=+r[cfg.yearF];return y&&y>=R.from.getFullYear()&&y<=R.to.getFullYear()})}
  if(cfg.date){const R=rangeOf(st);rows=rows.filter(r=>inR(r[cfg.date]||(k==='bom'?(DB.orders.find(o=>o.od_no===r.od_no)||{}).order_date:''),R))}
  if(st.cust)rows=rows.filter(r=>r.cust===st.cust);
  if(st.q){const q=st.q.toLowerCase();rows=rows.filter(r=>cfg.cols.some(c=>String(r[c.f]??'').toLowerCase().includes(q)))}
@@ -1488,7 +1495,7 @@ function kpisFor(k,rows){
   kpi(tt('加權效率','Weighted eff.'),fmt(sum(ef,r=>r.sewn*r.smv)/Math.max(1,sum(ef,r=>r.sewn*r.smv/(r.eff/100)))*100,1)+'%','',tt('Σ標準分 ÷ Σ投入分','Σ std min ÷ Σ avail min'))}
  return '';
 }
-function dsEmpty(k){const cfg=CFG[k];if(!cfg)return false;if(live(cfg.data()).length)return false;if(cfg.snap){const sn=k==='fabric'?'fabsnaps':'accsnaps';if(Object.keys(DB[sn]||{}).length)return false}return true}
+function dsEmpty(k){const cfg=CFG[k];if(!cfg)return false;if(live(cfg.data()).length)return false;if(cfg.snap&&SNAPK[k]){const sn=SNAPK[k][1];if(Object.keys(DB[sn]||{}).length)return false}return true}
 function renderGeneric(k){
  if(!isDemo()&&dsEmpty(k))return pageHead(k,stdActs(k))+navFor(k)+needHTML(k);
  const rows=filterRows(k);
@@ -1496,7 +1503,9 @@ function renderGeneric(k){
  if(k==='production')extra=`<div class="note info" style="margin-bottom:12px">${tt('現有 VRT Prod 保持獨立運作；此頁只顯示、串接、比對。','VRT Prod keeps running on its own; this page only displays, links and compares.')} <a href="https://saintdou-weng.github.io/vrt-prod/" target="_blank" rel="noopener">VRT Prod ↗</a></div>`;
  if(k==='bom'&&!isDemo())extra=`<p class="note info small" style="margin:0 0 12px">${tt('真實 BOM（W_COD550）：單耗 = 總用量 ÷ 訂單量。ERP 匯出沒有料號和單價，預估料費要等匯入 W_CPU795 採購單價後才算得出來。','Real BOM (W_COD550): consumption = total usage ÷ order qty. The export has no material numbers or prices; material cost needs W_CPU795.')}</p>`;
  else if(k==='bom')extra=`<div class="formula" style="margin-bottom:12px">${tt('預估料費','Est. material cost')} = ${tt('單耗','Consumption')} × ${tt('訂單量','Order qty')} × (1 + ${tt('損耗%','Loss %')}) × ${tt('料價','Price')} · ${t('price_basis')}: <b>${tt('最近一次採購價（W_CPU795）','Latest purchase price (W_CPU795)')}</b></div>`;
- return pageHead(k,stdActs(k))+navFor(k)+extra+`<div class="kpis">${kpisFor(k,rows)}</div>`+toolbar(k)+tableHTML(k,rows);
+ if(k==='stockmove'&&!isDemo())extra=`<p class="note info small" style="margin:0 0 12px">${tt('年度總表：選「年」看該年；2014–2016 年 ERP 沒有入庫紀錄，只供參考。單位不同（碼／個／顆）不要相加。','Yearly report: pick a year; 2014–2016 have no receipts in the ERP. Do not add different units together.')}</p>`;
+ if(k==='purchase'&&!isDemo())extra=`<p class="note info small" style="margin:0 0 12px">${tt('期間依採購單號年月（DA2401… = 2024-01）；「進貨金額」= ERP 金額欄（只算已進貨）。','Period follows the PO number month; received value = ERP amount column.')}</p>`;
+ return pageHead(k,stdActs(k))+navFor(k)+noDataHint(k)+extra+`<div class="kpis">${kpisFor6(k,rows)}</div>`+toolbar(k)+tableHTML(k,rows);
 }
 
 /* ================= record drawer (generic CRUD) ================= */
@@ -1583,16 +1592,16 @@ function newRec(k){
 /* ================= order drawer: full chain ================= */
 function meterRow(l,v,max,suffix){const p=max?Math.min(100,v/max*100):0;return `<div class="meter"><span>${esc(l)}</span><div class="trk"><div class="fill" style="width:${p}%"></div></div><span class="val">${suffix!=null?suffix:fmt(p,0)+'%'}</span></div>`}
 function openOrder(id){
- const o=findRec('orders',id); if(!o)return;
+ const o=ordersView().find(x=>x.id===id)||findRec('orders',id); if(!o)return;
  const same=x=>(o.od_no&&x.od_no===o.od_no)||(!x.od_no||!o.od_no)&&o.my_no&&keyN(x.my_no)===keyN(o.my_no); const bom=DB.bom.filter(b=>same(b)&&!b.deleted_at); const ships=DB.shipping.filter(s=>same(s)&&!s.deleted_at);
  const prod=DB.production.find(p=>same(p)); const fgs=DB.fg.filter(g=>same(g)&&!g.deleted_at&&(!o.po_no||!g.po_no||keyN(g.po_no)===keyN(o.po_no))); const fg=fgs.length?{erp_qty:sum(fgs,'erp_qty'),acc_qty:fgs.some(g=>g.acc_qty!=null)?sum(fgs,g=>g.acc_qty||0):null,prod_qty:fgs.some(g=>g.prod_qty!=null)?sum(fgs,g=>g.prod_qty||0):null,n:fgs.length}:null; const c=costOrder(o,'latest');
- const mats=new Set(bom.map(b=>b.material_no+'|'+b.color)); const pur=DB.purchase.filter(p=>mats.has(p.material_no+'|'+p.color)).slice(0,6);
+ const mats=new Set(bom.map(b=>b.material_no+'|'+b.color)); const pur=DB.purchase.filter(p=>!p.deleted_at&&((p.my_no&&nk(p.my_no)===nk(o.my_no))||mats.has(p.material_no+'|'+p.color))).slice(0,12);
  const kv=(l,v)=>`<div><dt>${esc(l)}</dt><dd>${v}</dd></div>`;
  const s=ORDER_ST[o.status]||['neu',o.status];
  let h=`<div class="sec"><div class="kv">${kv(t('my_no'),`<span class="mono">${esc(o.my_no)}</span>`)}${kv(t('po_no'),`<span class="mono">${esc(o.po_no)}</span>`)}${kv(t('customer'),esc(o.cust))}${kv(t('style'),`<span class="mono">${esc(o.style)}</span>`)}
   ${kv(t('color'),esc(o.clr))}${kv(t('order_qty'),fmt(o.qty)+' '+t('pcs'))}${kv(t('price'),money(o.price,3)+' '+esc(o.currency))}${kv(t('amount'),money(o.qty*o.price))}
   ${kv(t('order_date'),esc(o.order_date))}${kv(t('delivery'),esc(o.delivery))}${kv('SMV',o.smv>0.01?fmt(o.smv,2):`<span class="st warn">${tt('缺 SMV','SMV missing')}</span>`)}${kv(t('source'),srcBadge(o.source_system)+(o._ovr?' '+srcBadge('VRT_ONEERP'):''))}</div></div>
-  <div class="sec"><h4>${tt('進度','Progress')} · W_COD690</h4>${meterRow(t('cut_qty'),o.cut_qty,o.qty,fmt(o.cut_qty))}${meterRow(t('fg_qty'),o.fg_qty,o.qty,fmt(o.fg_qty))}${meterRow(t('ship_qty'),o.ship_qty,o.qty,fmt(o.ship_qty))}</div>`;
+  <div class="sec"><h4>${tt('進度','Progress')} · W_COD700 / W_COD690</h4>${meterRow(t('cut_qty'),o.cut_qty,o.qty,fmt(o.cut_qty))}${meterRow(t('fg_qty'),o.fg_qty,o.qty,fmt(o.fg_qty))}${meterRow(t('ship_qty'),o.ship_qty,o.qty,fmt(o.ship_qty))}</div>`;
  h+=`<div class="sec"><h4>BOM · W_COD550 (${bom.length})</h4>${bom.length?`<div class="tbl-wrap"><table class="t"><thead><tr><th>${esc(t('material'))}</th><th class="r">${esc(t('cons'))}</th><th class="r">${esc(t('total_use'))}</th><th class="r">${esc(t('est_cost'))}</th></tr></thead><tbody>${bom.map(b=>`<tr><td class="wrap">${esc(b.material)} <span class="muted small">${esc(b.color)}</span></td><td class="r">${fmt(b.cons,3)}</td><td class="r">${fmt(b.total_use,1)} ${esc(b.unit)}</td><td class="r">${money(b.est_cost)}</td></tr>`).join('')}</tbody><tfoot><tr><td>${esc(t('total'))}</td><td></td><td></td><td class="r">${money(sum(bom,'est_cost'))}</td></tr></tfoot></table></div>`:`<p class="note warn">${tt('此單沒有 BOM（ERP 匯出未完成或舊單缺 BOM）','No BOM for this order (export incomplete or legacy order without BOM)')}</p>`}</div>`;
  h+=`<div class="sec"><h4>${esc(t('purchase'))} · ${tt('經料品名稱＋顏色串接','joined by material + colour')}</h4>${pur.length?pur.map(p=>`<div class="small" style="display:flex;gap:8px;padding:3px 0;flex-wrap:wrap"><span class="mono">${esc(p.purchase_no)}</span><span>${esc(p.material)} ${esc(p.color)}</span><span class="muted">${money(p.price,3)}/${esc(p.unit)} · ETA ${esc(p.eta)} · ${esc(t('outstanding'))} ${fmt(p.outstanding)}</span></div>`).join(''):'<span class="muted small">—</span>'}</div>`;
  h+=`<div class="sec"><h4>${esc(t('production'))} · VRT Prod</h4>${prod?`<div class="kv">${kv(t('line'),esc(prod.line))}${kv(t('sewn'),fmt(prod.sewn))}${kv(t('packed'),fmt(prod.packed))}${kv(t('eff'),prod.eff!=null?fmt(prod.eff,1)+'%':'—')}</div>`:'<span class="muted small">—</span>'}</div>`;
@@ -1875,7 +1884,7 @@ function renderSync(){
  h+=`<div class="steps">${flow.map((f,i)=>`<span class="${i<2?'on':''}">${esc(f)}</span>`).join('<span style="border:0;background:none">→</span>')}</div>`;
  h+=`<div class="kpis">${kpi(tt('排程','Schedule'),esc(c.time),'',tt('週一至週六；週日與廠休日跳過','Mon–Sat; Sundays & factory holidays skipped'))}${kpi(tt('下一次','Next run'),'<span style="font-size:17px">'+esc(nextSyncText())+'</span>','',tt('可在設定修改時間 / 行事曆','change time / calendar in Settings'))}${kpi(tt('Legacy 寫入','Legacy writes'),'0','',tt('只允許 SELECT','SELECT only'),'good')}${kpi(tt('後端','Backend'),c.gas?'GAS':'—','',c.gas?tt('已設定 Web App','Web App set'):tt('尚未設定（設定頁）','not set (Settings)'),c.gas?'good':'warn')}</div>`;
  h+=`<div class="note crit" style="margin:12px 0">${tt('單向：Legacy ERP → PSJERP Cloud。不做反向同步。Bridge 帳號只允許 SELECT。休假日不進 Legacy ERP、不發每日摘要；手動「立即同步」仍只讀。','One-way: Legacy ERP → PSJERP Cloud. No reverse sync; the Bridge account may only SELECT. On holidays nothing touches the legacy ERP and no daily summary is sent; manual Sync now is still read-only.')}</div>`;
- if(!isDemo())h+=coverageHTML(true); else{h+=`<div class="tbl-wrap"><table class="t cards"><thead><tr><th>Dataset</th><th>ERP</th><th class="r">Legacy</th><th class="r">Cloud</th><th>Last sync</th><th class="r">Added</th><th class="r">Updated</th><th class="r">Errors</th><th>${esc(t('status'))}</th><th>${tt('說明','Note')}</th><th></th></tr></thead><tbody>
+ if(!isDemo())h+=coverageMatrixHTML()+coverageHTML(true); else{h+=`<div class="tbl-wrap"><table class="t cards"><thead><tr><th>Dataset</th><th>ERP</th><th class="r">Legacy</th><th class="r">Cloud</th><th>Last sync</th><th class="r">Added</th><th class="r">Updated</th><th class="r">Errors</th><th>${esc(t('status'))}</th><th>${tt('說明','Note')}</th><th></th></tr></thead><tbody>
  ${SYNCSETS.map((x,i)=>`<tr><td class="lead" data-l="Dataset">${modIcon(x.k)} ${esc(x.k==='smv'?'SMV':t(x.k))}</td><td class="mono small" data-l="ERP">${esc(x.fn)}</td><td class="r" data-l="Legacy">${x.legacy==null?'—':fmt(x.legacy)}</td><td class="r" data-l="Cloud">${fmt(x.cloud)}</td><td data-l="Last sync">${esc(x.last)}</td><td class="r" data-l="Added">${fmt(x.add)}</td><td class="r" data-l="Updated">${fmt(x.upd)}</td><td class="r" data-l="Errors">${x.err?`<b class="diff-neg">${fmt(x.err)}</b>`:'0'}</td><td data-l="${esc(t('status'))}">${syncChip(x.st)}</td><td class="wrap small" data-l="Note">${esc(x.note[LANG===0?0:1])}</td>
  <td data-l=""><div style="display:flex;gap:4px;flex-wrap:wrap"><button class="btn sm" onclick="syncNow(${i})">Sync Now</button>${x.err||x.st==='error'?`<button class="btn sm dng" onclick="syncErr(${i})">View Error</button>`:''}</div></td></tr>`).join('')}</tbody></table></div>`;}
  const runs=(DB.syncruns||[]).filter(r=>inR(r.time.slice(0,10),R));
@@ -2032,7 +2041,7 @@ function renderImport(){
  h+=`<div class="drop" id="drop" tabindex="0" role="button"><b>📤 ${tt('拖曳或點此上傳 ERP 匯出檔（可一次多個）','Drop or tap to upload ERP export files (several at once)')}</b><span class="small muted">.xlsx · .xls · .csv · .txt — ${tt('不用先選種類','no need to choose a type')}</span></div>
  ${isDemo()?'':'<!--'}<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center"><span class="small muted">${tt('沒有檔案？試用範例：','No file at hand? Try a sample:')}</span><button class="btn sm" onclick="sampleFile('fg')">smart_fg_2026-09.csv</button><button class="btn sm" onclick="sampleFile('bom')">W_COD550_B12.csv</button><button class="btn sm" onclick="sampleFile('fc')">factory_cost_2026.csv</button></div>${isDemo()?'':'-->'}`;
  h+=cloudBanner()+erpQueueHTML();
- if(!IMPQ.length&&!IMP)h+=coverageHTML();
+ if(!IMPQ.length&&!IMP)h+=coverageMatrixHTML()+coverageHTML();
  if(IMP&&!IMP.done){
   const d=IMP.ds?DS[IMP.ds]:null; const c=n=>IMP.rows?IMP.rows.filter(r=>r.st===n).length:0;
   h+=`<div class="grid2 mt"><div class="panel"><h2>${tt('偵測結果','Detected')}</h2><p class="hint mono">${esc(IMP.file)} · ${esc(IMP.sheet)} · ${fmt(IMP.data.length)} ${tt('列','rows')} · ${fmt(IMP.hdr.length)} ${tt('欄','columns')}</p>
@@ -2049,7 +2058,7 @@ function renderImport(){
   ${IMP.rows.length>40?`<p class="small muted">${tt('只預覽前 40 列','Previewing first 40 rows')} / ${fmt(IMP.rows.length)}</p>`:''}`;
   h+=`<div class="panel mt"><div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center"><label class="chk"><input type="checkbox" checked disabled> ${tt('重複資料固定略過（安全）','Duplicates are always skipped (safe)')}</label>
   <label class="chk"><input type="checkbox" id="optUpd" ${IMP.opt.update?'checked':''} onchange="IMP.opt.update=this.checked"> ${tt('更新雲端補充欄位（ACC / PROD / 實盤 / 備註）；ERP 正式值不覆蓋','Update cloud supplement fields (ACC / PROD / count / notes); ERP official values are never overwritten')}</label>
-  <span style="margin-left:auto;display:flex;gap:8px"><button class="btn" onclick="IMP=null;rerender()">${esc(t('cancel'))}</button><button class="btn pri" onclick="confirmImport()">${tt('確認匯入雲端','Confirm import to cloud')}</button></span></div>
+  <span style="margin-left:auto;display:flex;gap:8px"><button class="btn" onclick="saveTpl()" title="${tt('下次同樣欄位的檔案自動套用','Auto-apply next time')}">💾 ${IMP.tplName?tt('更新範本','Update template'):tt('存成範本','Save as template')}</button><button class="btn" onclick="IMP=null;rerender()">${esc(t('cancel'))}</button><button class="btn pri" onclick="confirmImport()">${tt('確認匯入雲端','Confirm import to cloud')}</button></span></div>
   <p class="small muted" style="margin:8px 0 0">${tt('只寫入 PSJERP 雲端資料；錯誤列不匯入；不刪除 Legacy ERP；不寫回 clothes.exe。','Writes to PSJERP cloud data only; error rows are skipped; nothing is deleted from the legacy ERP; nothing goes back to clothes.exe.')}</p></div>`;
  }
  if(IMP&&IMP.done)h+=`<div class="note info mt">✓ ${esc(IMP.doneMsg)}</div>`;
@@ -2204,7 +2213,9 @@ function resetDemo(){DB=genData();DB._v=1;persist();IMP=null;toast(tt('已重設
 function gsearch(q){
  const box=$('#sres'); q=q.trim().toLowerCase(); if(q.length<2){box.hidden=true;return}
  const R=[]; const add=(k,label,sub,fn)=>{if(R.length<24)R.push({k,label,sub,fn})};
- live(DB.orders).forEach(o=>{if([o.od_no,o.my_no,o.po_no,o.style,o.cust].some(v=>String(v).toLowerCase().includes(q)))add('orders',o.my_no+' · '+o.od_no,o.cust+' · '+o.style+' · '+o.po_no,`openOrder('${o.id}')`)});
+ ordersView().forEach(o=>{if([o.od_no,o.my_no,o.po_no,o.style,o.cust].some(v=>String(v??'').toLowerCase().includes(q)))add('orders',o.my_no+' · '+(o.od_no||o.order_date||''),o.cust+' · '+o.style+' · '+o.po_no,`openOrder('${o.id}')`)});
+ live(DB.fgstock||[]).forEach(f=>{if([f.my_no,f.od_no,f.style].some(v=>String(v??'').toLowerCase().includes(q)))add('fgstock',f.my_no+' · '+f.od_no,f.cust+' · '+f.style+' · '+fmt(f.qty)+' pcs',`openRec('fgstock','${f.id}')`)});
+ live(DB.price||[]).forEach(p=>{if([p.purchase_no,p.material_no,p.material].some(v=>String(v??'').toLowerCase().includes(q)))add('pprice',p.purchase_no+' · '+p.material_no,p.material+' · '+money(p.price,3)+'/'+p.unit,`openRec('pprice','${p.id}')`)});
  live(DB.purchase).forEach(p=>{if([p.purchase_no,p.material,p.supplier].some(v=>String(v).toLowerCase().includes(q)))add('purchase',p.purchase_no,p.material+' '+p.color,`openRec('purchase','${p.id}')`)});
  live(DB.shipping).forEach(s=>{if([s.bl_no,s.invoice,s.container].some(v=>String(v).toLowerCase().includes(q)))add('shipping',s.bl_no+' · '+s.invoice,s.cust+' · '+fmt(s.qty)+' pcs',`openRec('shipping','${s.id}')`)});
  live(DB.fabric).forEach(f=>{if([f.material_no,f.name,f.lot].some(v=>String(v).toLowerCase().includes(q)))add('fabric',f.material_no+' · '+f.lot,f.name+' '+f.color,`openRec('fabric','${f.id}')`)});
@@ -2263,5 +2274,388 @@ async function init(){
  setTimeout(()=>cloudSync(false),400);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&cloudReady()&&(!CLOUD.last||Date.now()-new Date(CLOUD.last.replace(' ','T'))>3*60e3))cloudSync(false)});
 }
+
+/* ===================== v0.6.0 (2026-10-07) — all ERP exports, global drop, templates, coverage, export ===================== */
+const APP_VER='0.6.0';
+Object.assign(T,{
+ sub_purchase:['W_CPU350 主料／W_CPU340 副料 採購資料：採購量、進貨量、差異、單價、金額','W_CPU350 / W_CPU340 purchases: ordered, received, short, price, amount'],
+ pprice:['採購單價','Purchase prices','តម្លៃទិញ'], stockmove:['主副料進耗存','Material movement','ចលនាសម្ភារៈ'], fgstock:['成品庫存','FG stock','ស្តុកផលិតផលសម្រេច'], labor:['人工彙總','Labour summary','សង្ខេបកម្លាំងពលកម្ម'],
+ sub_pprice:['W_CPU795 每次採購單價（料價、廠商、幣別）','W_CPU795 purchase price per order line'], sub_stockmove:['W_CST541／551 年度進耗存總表：期初、入庫、出庫、調整、結存','W_CST541/551 yearly movement: opening, in, out, adjustment, closing'],
+ sub_fgstock:['W_CST302 成品庫存（時點值）','W_CST302 finished-goods stock (snapshot)'], sub_labor:['每月人工彙總（人數、工時、直接／間接人工）；個人薪資不放這裡','Monthly labour summary (headcount, hours, direct / indirect labour); no personal pay here'],
+ hra_link:['人事（HRA Portal）','HR (HRA Portal)']
+});
+/* ---------- helpers ---------- */
+const nk=s=>keyN(s).replace(/^0+/,'');
+const dmy=v=>{if(v==null||v==='')return '';if(typeof v==='number')return xlDate(v);if(v instanceof Date)return ymd(v);const s=cellS(v);let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);if(m)return m[3]+'-'+pad(+m[2])+'-'+pad(+m[1]);m=s.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})/);if(m)return m[1]+'-'+pad(+m[2])+'-'+pad(+m[3]);if(/^\d{5}(\.\d+)?$/.test(s))return xlDate(+s);return ''};
+const hdrIdx=(aoa,need,max=40)=>findRow(aoa,r=>need.every(n=>r.includes(n)),0,max);
+const lastNum=r=>{for(let j=r.length-1;j>=0;j--){const s=cellS(r[j]);if(s!==''&&!isNaN(+String(s).replace(/,/g,'')))return numV(r[j])}return null};
+const nums=r=>r.map(cellS).filter(s=>s!==''&&!isNaN(+s.replace(/,/g,''))).map(s=>+s.replace(/,/g,''));
+const ckEq=(label,a,b,tol=0.05,d=2)=>({ok:Math.abs(a-b)<=tol,msg:`${label} ${fmt(a,d)} ${Math.abs(a-b)<=tol?'= 報表合計':'≠ 報表合計 '+fmt(b,d)}`});
+const isNumLike=v=>typeof v==='number'||/^\d+(\.\d+)?$/.test(cellS(v));
+const yearRange=y=>y?[y+'-01-01',y+'-12-31']:null;
+const minmax=a=>{const s=a.filter(Boolean).sort();return s.length?[s[0],s[s.length-1]]:['',''];};
+
+/* ---------- W_CPU350 主料 / W_CPU340 副料 採購資料查詢表 ---------- */
+function parseCPU35x(aoa,file,rep){
+ const main=rep==='cpu350'; const hi=hdrIdx(aoa,['採購單號','單價','廠商']); if(hi<0)throw new Error('找不到表頭（採購單號 / 單價 / 廠商）');
+ const H=headerMap(aoa[hi]); const g=(r,n)=>H[n]!=null?r[H[n]]:''; const amtC=H['進貨總金額']!=null?'進貨總金額':'金額'; const shortC=H['差異量']!=null?'差異量':'不足量';
+ const rows=[]; let tot=null;
+ for(let i=hi+1;i<aoa.length;i++){const r=aoa[i]; const s=r.map(cellS);
+  if(s.some(x=>/合計/.test(x))){tot=(tot||0)+(lastNum(r)||0);continue}
+  if(!isNumLike(g(r,'序'))||!cellS(g(r,'採購單號')))continue;
+  const pno=cellS(g(r,'採購單號')); const m=pno.match(/^[A-Z]{2}(\d{2})(\d{2})/); const pd=m?('20'+m[1]+'-'+m[2]+'-01'):dmy(g(r,'交貨日期'));
+  rows.push({type:main?'main':'trim',seq:numV(g(r,'序')),supplier:cellS(g(r,'廠商')),purchase_no:pno,my_no:cellS(g(r,'自編單號')),purchase_date:pd,eta:dmy(g(r,'交貨日期')),material:cellS(g(r,'料名')),color:cellS(g(r,'顏色')),size:cellS(g(r,'尺寸')),
+   qty:numV(g(r,'採購量')),unit:cellS(g(r,'單位')),received:numV(g(r,'進貨量')),foc:numV(g(r,'FOC')),outstanding:numV(g(r,shortC)),diff_pct:H['差異%']!=null?numV(g(r,'差異%')):null,currency:cellS(g(r,'幣別')),price:numV(g(r,'單價')),amount:numV(g(r,amtC)),_row:i+1});
+ }
+ const y=fileYear(file.name); const T2={n:rows.length,qty:sum(rows,'qty'),amt:sum(rows,'amount')}; const checks=[{ok:rows.length>0,msg:`${fmt(rows.length)} 列 · ${main?'主料':'副料'}`}];
+ if(tot!=null)checks.push(ckEq(main?'進貨總金額':'金額',T2.amt,tot,0.05,2)); else checks.push({ok:null,msg:'報表沒有「幣別合計」列，以逐筆加總為準'});
+ const z=rows.filter(r=>!r.price).length; if(z)checks.push({ok:null,msg:`${fmt(z)} 列單價為 0`});
+ const nu=rows.filter(r=>r.currency&&r.currency!=='USD').length; if(nu)checks.push({ok:null,msg:`${nu} 列幣別不是 USD`});
+ checks.push({ok:null,msg:'期間依採購單號的年月（例 DA2401… = 2024-01）；交貨日期另存'});
+ const pr=minmax(rows.map(r=>r.purchase_date));
+ return {rep,rows,meta:{key:rep+'|'+(y||file.name),year:y,asof:listDate(aoa),label:(y?y+' 年':file.name)+(main?' 主料採購':' 副料採購'),range:y?yearRange(y):pr,totals:{n:T2.n,qty:T2.qty,amount:T2.amt},reportTotal:tot,dataRange:pr},checks};
+}
+/* ---------- W_CST541 主料 / W_CST551 副料 進耗存（總表） ---------- */
+function parseCST54x(aoa,file,rep){
+ const main=rep==='cst541'; let from='',to='';
+ for(let i=0;i<6&&i<aoa.length;i++){const m=aoa[i].map(cellS).join(' ').match(/(\d{4})年(\d{1,2})月\s*[～~]\s*(\d{4})年(\d{1,2})月/);if(m){from=m[1]+'-'+pad(+m[2])+'-01';const e=new Date(+m[3],+m[4],0);to=ymd(e);break}}
+ const hi=hdrIdx(aoa,['料號','結存']); if(hi<0)throw new Error('找不到表頭（料號 / 結存）');
+ const H=headerMap(aoa[hi]); const g=(r,n)=>H[n]!=null?r[H[n]]:''; const rows=[]; let tot=null, bad=0;
+ for(let i=hi+1;i<aoa.length;i++){const r=aoa[i]; const s=r.map(cellS);
+  if(s.some(x=>/^合計/.test(x))){const n=nums(r);if(n.length>=5)tot={open:n[n.length-5],in:n[n.length-4],out:n[n.length-3],adj:n[n.length-2],close:n[n.length-1]};continue}
+  const no=cellS(g(r,'料號')); if(!no||no==='料號'||s.some(x=>/^製表/.test(x)))continue;
+  const rec={type:main?'main':'trim',year:from?+from.slice(0,4):fileYear(file.name),period_from:from,period_to:to,material_no:no,name:cellS(g(r,'料名')),color:cellS(g(r,'色號')),color_name:cellS(g(r,'色名')),width:cellS(g(r,'幅寬')),weight:cellS(g(r,'碼重')),size:cellS(g(r,'尺寸')),unit:cellS(g(r,'單位')),
+   open:numV(g(r,'上月結存')),in_qty:numV(g(r,'入庫')),out_qty:numV(g(r,'出庫')),adj:numV(g(r,'調整')),close:numV(g(r,'結存')),_row:i+1};
+  if(Math.abs(rec.open+rec.in_qty-rec.out_qty+rec.adj-rec.close)>0.01)bad++; rows.push(rec);
+ }
+ const T2={n:rows.length,open:sum(rows,'open'),in:sum(rows,'in_qty'),out:sum(rows,'out_qty'),adj:sum(rows,'adj'),close:sum(rows,'close')};
+ const checks=[{ok:bad===0,msg:bad?`${bad} 列 上月結存＋入庫−出庫＋調整 ≠ 結存`:'每一列 上月結存＋入庫−出庫＋調整 = 結存'}];
+ if(tot)checks.push(ckEq('結存',T2.close,tot.close,0.05,2),ckEq('入庫',T2.in,tot.in,0.05,2),ckEq('出庫',T2.out,tot.out,0.05,2)); else checks.push({ok:null,msg:'報表沒有合計列'});
+ const y=from?+from.slice(0,4):null; if(y&&y<=2016)checks.push({ok:null,msg:'2014–2016 年 ERP 沒有入庫紀錄、期末多為負數，只供參考；2017 年起可信'});
+ const neg=rows.filter(r=>r.close<0).length; if(neg)checks.push({ok:null,msg:`${fmt(neg)} 列結存為負數`});
+ return {rep,rows,meta:{key:rep+'|'+(from||'')+'|'+(to||file.name),year:y,asof:listDate(aoa),label:(from?from.slice(0,7)+' ～ '+to.slice(0,7):file.name)+(main?' 主料進耗存':' 副料進耗存'),range:from?[from,to]:null,totals:T2,reportTotal:tot},checks};
+}
+/* ---------- 主料 / 副料 庫存明細表（K01 / K02）— v0.6: 色號 / 尺寸 / 合計位置 ---------- */
+function parseSTK(aoa,file,rep){
+ const hi=findRow(aoa,r=>r.includes('料號')&&r.includes('庫存量'),0,40); if(hi<0)throw new Error('找不到表頭（料號 / 庫存量）');
+ const H=headerMap(aoa[hi]); const c=n=>H[n]; const g=(r,n)=>H[n]!=null?cellS(r[H[n]]):''; const rows=[]; let tot=null;
+ for(let i=hi+1;i<aoa.length;i++){const r=aoa[i]; const s=r.map(cellS);
+  if(s.some(x=>/^合計/.test(x))){tot={rolls:c('疋數')!=null?numV(r[c('疋數')]):null,bal:lastNum(r)};continue}
+  const no=s[c('料號')]; if(!no||no==='料號')continue;
+  rows.push({material_no:no,name:g(r,'料品名稱'),item:g(r,'料品名稱'),width:g(r,'幅寬'),weight:g(r,'碼重'),color:g(r,'顏色')||g(r,'色號'),color_name:g(r,'顏色名稱'),size:g(r,'尺寸'),unit:g(r,'單位'),rolls:c('疋數')!=null?numV(r[c('疋數')]):null,balance:numV(r[c('庫存量')]),_row:i+1});
+ }
+ const asof=listDate(aoa)||ymd(TODAY); const T2={n:rows.length,bal:sum(rows,'balance'),rolls:sum(rows,'rolls')}; const checks=[];
+ if(tot&&tot.bal!=null)checks.push(ckEq('庫存量',T2.bal,tot.bal,0.05,2)); else checks.push({ok:null,msg:'報表沒有合計列，以逐筆加總為準'});
+ const nr=rows.filter(r=>r.rolls<0).length; if(nr)checks.push({ok:null,msg:`${fmt(nr)} 列疋數為負數（ERP 疋數沒有維護，只看碼數）`});
+ const nb=rows.filter(r=>r.balance<0).length; if(nb)checks.push({ok:null,msg:`${nb} 列庫存量為負數`});
+ return {rep,rows,meta:{key:rep+'|'+asof,asof,label:'As of '+asof,range:[asof,asof],totals:T2,reportTotal:tot},checks};
+}
+/* ---------- W_CST302 成品庫存明細表（K04） ---------- */
+function parseCST302(aoa,file,rep){
+ const hi=hdrIdx(aoa,['客戶','自編單號','庫存量']); if(hi<0)throw new Error('找不到表頭（客戶 / 自編單號 / 庫存量）');
+ const H=headerMap(aoa[hi]); const g=(r,n)=>H[n]!=null?cellS(r[H[n]]):''; const rows=[]; let tot=null;
+ for(let i=hi+1;i<aoa.length;i++){const r=aoa[i]; const s=r.map(cellS);
+  if(s.some(x=>/^合計/.test(x))){tot=lastNum(r);continue}
+  const cu=g(r,'客戶'); if(!cu||cu==='客戶'||!isNumLike(r[H['庫存量']]))continue;
+  rows.push({cust:cu,my_no:g(r,'自編單號'),od_no:g(r,'訂單號碼'),style:g(r,'款式代號'),clr:g(r,'顏色'),clr_name:g(r,'顏色說明'),size:g(r,'尺寸'),qty:numV(r[H['庫存量']]),order_year:/^VRT(\d{2})/.test(g(r,'訂單號碼'))?+('20'+g(r,'訂單號碼').slice(3,5)):null,_row:i+1});
+ }
+ const asof=listDate(aoa)||ymd(TODAY); const T2={n:rows.length,qty:sum(rows,'qty')};
+ const checks=[tot!=null?ckEq('庫存量',T2.qty,tot,0.5,0):{ok:null,msg:'報表沒有合計列，以逐筆加總為準'}];
+ const old=rows.filter(r=>r.order_year&&r.order_year<=TODAY.getFullYear()-3); if(old.length)checks.push({ok:null,msg:`${fmt(sum(old,'qty'))} 件是 3 年以上的舊訂單`});
+ return {rep,rows,meta:{key:rep+'|'+asof,asof,label:'As of '+asof,range:[asof,asof],totals:T2,reportTotal:tot},checks};
+}
+/* ---------- W_CBL300 出貨資料（S2014.txt…，Tab 分隔，沒有標題） ---------- */
+function parseCBL300(aoa,file,rep){
+ const hi=hdrIdx(aoa,['bl_no','bl_date','blb_qty'],5); if(hi<0)throw new Error('找不到表頭（bl_no / bl_date / blb_qty）');
+ const H=headerMap(aoa[hi]); const g=(r,n)=>H[n]!=null?cellS(r[H[n]]):''; const rows=[];
+ for(let i=hi+1;i<aoa.length;i++){const r=aoa[i]; const bl=g(r,'bl_no'); if(!bl)continue;
+  rows.push({bl_no:bl,ship_date:dmy(g(r,'bl_date')),cust:g(r,'cust_id'),bl_seq:numV(g(r,'bl_seq')),od_no:g(r,'od_no'),od_seq:numV(g(r,'od_seq')),qty:numV(g(r,'blb_qty')),whs:g(r,'whs_id'),po_no:g(r,'po_no'),style:g(r,'style_id'),clr_no:g(r,'clr_no'),clr:g(r,'clr_name'),order_date:dmy(g(r,'od_date')),my_no:g(r,'my_no'),cust_clr:g(r,'cust_clrname'),_row:i+1});
+ }
+ const y=fileYear(file.name); const dr=minmax(rows.map(r=>r.ship_date)); const nd=rows.filter(r=>!r.ship_date).length;
+ const checks=[{ok:rows.length>0,msg:`${fmt(rows.length)} 列 · ${fmt(uniq(rows,r=>r.bl_no))} 張出貨單 · ${fmt(sum(rows,'qty'))} 件`},{ok:null,msg:'txt 沒有合計列，以逐筆加總為準；金額用訂單單價（W_COD700）計算'}];
+ if(nd)checks.push({ok:false,msg:`${nd} 列沒有出貨日期`});
+ return {rep,rows,meta:{key:rep+'|'+(y||dr[0].slice(0,4)||file.name),year:y,label:(y||dr[0].slice(0,4))+' 年出貨',range:y?yearRange(y):dr,totals:{n:rows.length,qty:sum(rows,'qty')},dataRange:dr},checks};
+}
+/* ---------- W_CPU795 主副料採購單價（P2014.xlsx…，沒有標題） ---------- */
+function parseCPU795(aoa,file,rep){
+ const hi=hdrIdx(aoa,['採購單號','採購日期','料號','單價']); if(hi<0)throw new Error('找不到表頭（採購單號 / 採購日期 / 料號 / 單價）');
+ const H=headerMap(aoa[hi]); const g=(r,n)=>H[n]!=null?r[H[n]]:''; const rows=[];
+ for(let i=hi+1;i<aoa.length;i++){const r=aoa[i]; const pno=cellS(g(r,'採購單號')); if(!pno||pno==='採購單號'||!isNumLike(g(r,'序')))continue;
+  const unit=cellS(g(r,'單位')), price=numV(g(r,'單價'));
+  rows.push({purchase_no:pno,seq:numV(g(r,'序')),my_no:cellS(g(r,'自編單號')),purchase_date:dmy(g(r,'採購日期')),supplier:cellS(g(r,'廠商')),currency:cellS(g(r,'幣別')),material_no:cellS(g(r,'料號')),material:cellS(g(r,'料名')),color:cellS(g(r,'色號')),color_en:cellS(g(r,'英文色名')),color_zh:cellS(g(r,'中文色名')),size:cellS(g(r,'尺寸')),
+   unit,qty:numV(g(r,'採購數量')),eta:dmy(g(r,'交期')),price,unit_price:/^K$/i.test(unit)?price/1000:price,_row:i+1});
+ }
+ const y=fileYear(file.name); const dr=minmax(rows.map(r=>r.purchase_date)); const z=rows.filter(r=>!r.price).length;
+ const checks=[{ok:rows.length>0,msg:`${fmt(rows.length)} 列 · ${fmt(uniq(rows,r=>r.purchase_no))} 張採購單`},{ok:null,msg:'這張報表沒有合計列，以逐筆加總為準'}];
+ if(z)checks.push({ok:null,msg:`${fmt(z)} 列單價為 0`}); if(rows.some(r=>/^K$/i.test(r.unit)))checks.push({ok:null,msg:'單位 K = 每千個，每個單價已 ÷1000（unit_price）'});
+ return {rep,rows,meta:{key:rep+'|'+(y||file.name),year:y,label:(y?y+' 年':file.name)+' 採購單價',range:y?yearRange(y):dr,totals:{n:rows.length,qty:sum(rows,'qty')},dataRange:dr},checks};
+}
+/* ---------- W_COD700 訂單資料表（Excel / txt；中文或英文欄名） ---------- */
+const COD700_ALIAS={my_no:['自編單號','my_no'],order_date:['訂單日期','接單日期','od_date','order_date'],sales:['業務員','per_name','sa_per'],team:['組別','team_id'],cust:['客戶','cust_id','cust_abbr'],style:['款式代號','style_id'],style_name:['款式名稱','style_name'],
+ clr:['顏色說明','顏色','clr_name'],po_no:['PO NO','PO','po_no'],price:['單價','price'],delivery:['交期','del_date','delivery'],qty:['訂單量','od_qty','qty'],ship_qty:['已交量','bl_qty','ship_qty'],open_qty:['未交量','un_qty'],amount:['金額','amount'],closed_date:['結案日期','close_date'],od_no:['訂單號碼','od_no'],currency:['幣別','curr_id']};
+function parseCOD700(aoa,file,rep){
+ const hi=findRow(aoa,r=>(r.includes('自編單號')||r.includes('my_no'))&&(r.includes('訂單日期')||r.includes('od_date'))&&(r.includes('訂單量')||r.includes('od_qty')),0,40); if(hi<0)throw new Error('找不到表頭（自編單號 / 訂單日期 / 訂單量）');
+ const hdr=aoa[hi].map(cellS); const I={}; Object.entries(COD700_ALIAS).forEach(([f,al])=>{for(const a of al){const i=hdr.indexOf(a);if(i>=0){I[f]=i;break}}});
+ const g=(r,f)=>I[f]!=null?r[I[f]]:''; const rows=[]; let bad=0;
+ for(let i=hi+1;i<aoa.length;i++){const r=aoa[i]; const my=cellS(g(r,'my_no')); if(!my||my==='自編單號')continue; const od=dmy(g(r,'order_date')); if(!od)continue;
+  const rec={my_no:my,od_no:cellS(g(r,'od_no')),order_date:od,order_year:+od.slice(0,4),sales:cellS(g(r,'sales')),team:cellS(g(r,'team')),cust:cellS(g(r,'cust')),style:cellS(g(r,'style')),style_name:cellS(g(r,'style_name')),clr:cellS(g(r,'clr')),po_no:cellS(g(r,'po_no')),
+   price:numV(g(r,'price')),currency:cellS(g(r,'currency'))||'USD',delivery:dmy(g(r,'delivery')),qty:numV(g(r,'qty')),ship_qty:numV(g(r,'ship_qty')),open_qty:numV(g(r,'open_qty')),amount:numV(g(r,'amount')),closed_date:dmy(g(r,'closed_date')),_row:i+1};
+  if(I.amount!=null&&Math.abs(rec.amount-rec.qty*rec.price)>0.05)bad++; rows.push(rec);
+ }
+ const dr=minmax(rows.map(r=>r.order_date)); const checks=[{ok:rows.length>0,msg:`${fmt(rows.length)} 列 · ${fmt(uniq(rows,r=>nk(r.my_no)))} 個自編單號 · 訂單量 ${fmt(sum(rows,'qty'))}`}];
+ if(I.amount!=null)checks.push({ok:bad===0,msg:bad?`${bad} 列 金額 ≠ 訂單量×單價`:'每一列 金額 = 訂單量 × 單價'});
+ const z=rows.filter(r=>!r.price).length; if(z)checks.push({ok:null,msg:`${fmt(z)} 列單價為 0（多為樣品單）`});
+ const op=rows.filter(r=>!r.closed_date&&r.open_qty>0).length; if(op)checks.push({ok:null,msg:`${fmt(op)} 列未結案且有未交量`});
+ return {rep,rows,meta:{key:rep+'|'+dr[0]+'|'+dr[1],label:`訂單日 ${dr[0]} ～ ${dr[1]}`,range:dr,totals:{n:rows.length,qty:sum(rows,'qty'),amount:sum(rows,'amount')},dataRange:dr},checks};
+}
+/* ---------- W_CBA190 SMV（SMV_master_1845.csv） ---------- */
+function parseSMV(aoa,file,rep){
+ const hi=hdrIdx(aoa,['style_id','SMV_use'],5); if(hi<0)throw new Error('找不到表頭（style_id / SMV_use）');
+ const H=headerMap(aoa[hi]); const g=(r,n)=>H[n]!=null?r[H[n]]:''; const rows=[];
+ for(let i=hi+1;i<aoa.length;i++){const r=aoa[i]; const st=cellS(g(r,'style_id')); if(!st)continue;
+  const v=n=>{const s=cellS(g(r,n));return s===''?null:numV(s)};
+  rows.push({style:st,style_name:cellS(g(r,'style_name')),smv_sample:v('SAMPLE_001'),smv_cmt:v('CMT_002'),smv_prod:v('PRODUCTION_003'),smv_second:v('SECOND_004'),smv:v('SMV_use'),status:cellS(g(r,'狀態')),_row:i+1});
+ }
+ const ok=rows.filter(r=>r.smv>0.01).length;
+ return {rep,rows,meta:{key:'cba190|all',label:'款式 SMV（全部）',range:null,totals:{n:rows.length,ok},asof:''},checks:[{ok:rows.length>0,msg:`${fmt(rows.length)} 款 · 有效 SMV ${fmt(ok)} 款`},{ok:null,msg:'SMV 單位推定為 分鐘／件，待 IE 確認'}]};
+}
+
+/* ---------- registry additions ---------- */
+(function(){
+ const set=(k,o)=>{const R=REPORTS.find(r=>r.k===k);if(R)Object.assign(R,o);else REPORTS.push(Object.assign({k},o))};
+ set('cod700',{parser:'parseCOD700',hdr:null,file:'2014-2026.txt / W_COD700 匯出 Excel',sop:'S01',yearly:1,hdrFn:rows=>rows.some(x=>(x.includes('自編單號')||x.includes('my_no'))&&(x.includes('訂單日期')||x.includes('od_date'))&&(x.includes('訂單量')||x.includes('od_qty')))});
+ set('cod690',{sop:'S02'}); set('cod550',{sop:'S03'}); set('cst580',{sop:'S13',file:'R2014、R2017Q1、R2024H1…'});
+ set('stkmain',{sop:'S09',file:'K01'}); set('stktrim',{sop:'S10',guess:0,file:'K02'});
+ set('cpu795',{parser:'parseCPU795',hdr:['採購單號','採購日期','料號','單價'],file:'P2014.xlsx…',sop:'S06',yearly:1,ds:'price'});
+ set('cbl300',{parser:'parseCBL300',hdr:['bl_no','bl_date','blb_qty'],file:'S2014.txt…',sop:'S15',yearly:1});
+ set('cba190',{parser:'parseSMV',hdr:['style_id','SMV_use'],file:'SMV_master_1845.csv',sop:'S05'});
+ set('cst302',{parser:'parseCST302',title:/成品庫存明細表/,file:'K04',sop:'S14',zh:'成品庫存明細表',ds:'fgstock'});
+ set('cpu350',{parser:'parseCPU35x',title:/主料採購資料查詢/,file:'PM2014…',sop:'S07',yearly:1,zh:'主料採購資料查詢表'});
+ set('cpu340',{parser:'parseCPU35x',title:/副料採購資料查詢/,file:'PF2014…',sop:'S08',yearly:1,zh:'副料採購資料查詢表'});
+ const i=REPORTS.findIndex(r=>r.k==='cst302');
+ REPORTS.splice(i,0,{k:'cst541',fn:'W_CST541',zh:'主料進耗存（總表）',en:'Main material movement',ds:'stockmove',title:/主料進耗存/,use:['布料每年期初、入庫、出庫、調整、結存','Fabric yearly opening / in / out / adj / closing'],file:'M2014…',parser:'parseCST54x',yearly:1,sop:'S11'},
+  {k:'cst551',fn:'W_CST551',zh:'副料進耗存（總表）',en:'Trim movement',ds:'stockmove',title:/副料進耗存/,use:['輔料每年期初、入庫、出庫、調整、結存','Trim yearly movement'],file:'F2014…',parser:'parseCST54x',yearly:1,sop:'S12'});
+ // stkmain / stktrim titles must not swallow the movement reports
+ set('stkmain',{title:/主料庫存明細/}); set('stktrim',{title:/副料庫存明細|輔料庫存明細/});
+})();
+const SNAPREP={stkmain:['fabric','fabsnaps'],stktrim:['accessories','accsnaps'],cst302:['fgstock','fgsnaps']};
+const SNAPK={fabric:['fabric','fabsnaps'],accessories:['accessories','accsnaps'],fgstock:['fgstock','fgsnaps']};
+
+/* ---------- views: one order list, shipments with value ---------- */
+function ordersView(){if(GC.has('ordv'))return GC.get('ordv');const all=live(DB.orders);const is=(o,p)=>String(o.import_key||'').startsWith(p);const o7=all.filter(o=>is(o,'cod700'));let out;
+ if(o7.length){const idx=new Map();all.filter(o=>is(o,'cod690')).forEach(o=>{const k=ordKey(o.my_no,o.po_no);const a=idx.get(k)||{fg:0,cut:0};a.fg+=o.fg_qty||0;a.cut+=o.cut_qty||0;idx.set(k,a)});
+  const fgi=new Map();live(DB.fg).forEach(g=>{const k=ordKey(g.my_no,g.po_no);fgi.set(k,(fgi.get(k)||0)+(g.erp_qty||0))});
+  const used=new Set();out=o7.map(o=>{const k=ordKey(o.my_no,o.po_no);const a=idx.get(k)||(fgi.has(k)?{fg:fgi.get(k),cut:0}:null);const st=o.closed_date?'closed':(o.delivery&&parseD(o.delivery)<TODAY&&o.ship_qty<o.qty?'late':'open');if(a&&!used.has(k)){used.add(k);return {...o,fg_qty:a.fg,cut_qty:a.cut,status:st}}return {...o,fg_qty:o.fg_qty||0,cut_qty:o.cut_qty||0,status:st}});
+  const k7=new Set(o7.map(o=>ordKey(o.my_no,o.po_no))), m7=new Set(o7.map(o=>nk(o.my_no)));
+  out=out.concat(all.filter(o=>is(o,'cod690')&&!k7.has(ordKey(o.my_no,o.po_no))&&!m7.has(nk(o.my_no)))).concat(all.filter(o=>!o.import_key))}
+ else out=all;
+ GC.set('ordv',out);return out}
+function priceIdx(){if(GC.has('pidx'))return GC.get('pidx');const m=new Map(),m2=new Map();live(DB.orders).forEach(o=>{if(o.price>0){m.set(ordKey(o.my_no,o.po_no),o.price);if(!m2.has(nk(o.my_no)))m2.set(nk(o.my_no),o.price)}});const r={m,m2};GC.set('pidx',r);return r}
+function shipView(){if(GC.has('shipv'))return GC.get('shipv');const P=priceIdx();const out=live(DB.shipping).map(s=>{if(s.amount!=null&&s.amount!=='')return s;const p=P.m.get(ordKey(s.my_no,s.po_no))??P.m2.get(nk(s.my_no));return p!=null?{...s,price:p,amount:(s.qty||0)*p}:s});GC.set('shipv',out);return out}
+function baseRows(k){return k==='orders'?ordersView():k==='shipping'?shipView():live(CFG[k].data())}
+
+/* ---------- metrics / pages for the new datasets ---------- */
+SRCS.orders.rows=()=>ordersView(); SRCS.ship.rows=()=>shipView();
+SRCS.price={rows:()=>live(DB.price),date:r=>r.purchase_date};
+SRCS.smove={rows:()=>live(DB.stockmove),date:r=>(r.period_from&&r.period_to&&r.period_from.slice(0,7)===r.period_to.slice(0,7))?r.period_from:null,year:r=>r.year};
+SRCS.labor={rows:()=>live(DB.labor),date:r=>r.month_date};
+const mk=list=>{list.forEach(m=>{if(m.src&&!m.f)m.f=R=>m.g(rowsIn(m.src,R))});return list};
+const isYD=r=>/YD/i.test(r.unit||'');
+PM.purchase={metrics:mk([
+ M({l:()=>tt('採購列','Lines'),src:'pur',g:r=>r.length,add:1}),
+ M({l:()=>tt('廠商數','Suppliers'),src:'pur',g:r=>uniq(r,x=>x.supplier)}),
+ M({l:()=>tt('採購金額','Ordered value'),src:'pur',g:r=>sum(r,x=>(x.qty||0)*(x.price||0)),ty:'money',p:1,add:1}),
+ M({l:()=>tt('進貨金額','Received value'),src:'pur',g:r=>r.some(x=>x.amount!=null)?sum(r,'amount'):null,ty:'money',add:1}),
+ M({l:()=>tt('主料採購(碼)','Fabric ordered (yd)'),src:'pur',g:r=>sum(r.filter(x=>x.type==='main'&&isYD(x)),'qty'),add:1}),
+ M({l:()=>tt('差異／不足量列','Short lines'),src:'pur',g:r=>r.filter(x=>(x.outstanding||0)>0).length,add:1})])};
+PM.pprice={metrics:mk([
+ M({l:()=>tt('採購列','Lines'),src:'price',g:r=>r.length,add:1}),
+ M({l:()=>tt('採購單','Orders'),src:'price',g:r=>uniq(r,x=>x.purchase_no),add:1}),
+ M({l:()=>tt('廠商數','Suppliers'),src:'price',g:r=>uniq(r,x=>x.supplier)}),
+ M({l:()=>tt('料號數','Items'),src:'price',g:r=>uniq(r,x=>x.material_no)}),
+ M({l:()=>tt('採購金額','Value'),src:'price',g:r=>sum(r,x=>(x.qty||0)*(x.price||0)),ty:'money',p:1,add:1})])};
+PM.stockmove={metrics:mk([
+ M({l:()=>tt('主料入庫(碼)','Fabric in (yd)'),src:'smove',g:r=>sum(r.filter(x=>x.type==='main'&&isYD(x)),'in_qty'),add:1,p:1}),
+ M({l:()=>tt('主料出庫(碼)','Fabric out (yd)'),src:'smove',g:r=>sum(r.filter(x=>x.type==='main'&&isYD(x)),'out_qty'),add:1}),
+ M({l:()=>tt('主料結存(碼)','Fabric closing (yd)'),src:'smove',g:r=>sum(r.filter(x=>x.type==='main'&&isYD(x)),'close')}),
+ M({l:()=>tt('副料入庫(PCS)','Trim in (pcs)'),src:'smove',g:r=>sum(r.filter(x=>x.type==='trim'&&/PCS/i.test(x.unit)),'in_qty'),add:1}),
+ M({l:()=>tt('副料出庫(PCS)','Trim out (pcs)'),src:'smove',g:r=>sum(r.filter(x=>x.type==='trim'&&/PCS/i.test(x.unit)),'out_qty'),add:1}),
+ M({l:()=>tt('結存為負列','Negative closing'),src:'smove',g:r=>r.filter(x=>x.close<0).length})])};
+PM.shipping={metrics:mk([
+ M({l:()=>tt('出貨單','Shipments'),src:'ship',g:r=>uniq(r,x=>x.bl_no),add:1}),
+ M({l:()=>tt('出貨件數','Pieces'),src:'ship',g:r=>sum(r,'qty'),p:1,add:1}),
+ M({l:()=>t('amount'),src:'ship',g:r=>r.some(x=>x.amount!=null)?sum(r,x=>x.amount||0):null,ty:'money',add:1,need:r=>r.some(x=>x.amount!=null)}),
+ M({l:()=>tt('平均單價','Avg price'),src:'ship',g:r=>{const a=r.filter(x=>x.amount!=null);const q=sum(a,'qty');return q?sum(a,'amount')/q:null},ty:'money3',need:r=>r.some(x=>x.amount!=null)}),
+ M({l:()=>tt('客戶數','Customers'),src:'ship',g:r=>uniq(r,x=>x.cust)})])};
+PM.fgstock={snap:1,metrics:[
+ M({l:()=>tt('筆數','Lines'),f:R=>snapRows('fgstock',asOfDate(R)).rows.length}),
+ M({l:()=>tt('成品庫存(件)','FG stock (pcs)'),f:R=>sum(snapRows('fgstock',asOfDate(R)).rows,'qty'),p:1}),
+ M({l:()=>tt('客戶數','Customers'),f:R=>uniq(snapRows('fgstock',asOfDate(R)).rows,x=>x.cust)}),
+ M({l:()=>tt('3 年以上舊單(件)','3+ years old (pcs)'),f:R=>sum(snapRows('fgstock',asOfDate(R)).rows.filter(x=>x.order_year&&x.order_year<=TODAY.getFullYear()-3),'qty')})]};
+PM.labor={metrics:mk([
+ M({l:()=>tt('平均人數','Headcount'),src:'labor',g:r=>r.length?sum(r,'headcount'):null}),
+ M({l:()=>tt('正常工時','Work hours'),src:'labor',g:r=>sum(r,'work_hours'),add:1}),
+ M({l:()=>tt('加班工時','OT hours'),src:'labor',g:r=>sum(r,'ot_hours'),add:1}),
+ M({l:()=>tt('直接人工','Direct labour'),src:'labor',g:r=>sum(r,'dl_cost'),ty:'money',p:1,add:1}),
+ M({l:()=>tt('間接人工','Indirect labour'),src:'labor',g:r=>sum(r,'idl_cost'),ty:'money',add:1})])};
+PM.dashboard.metrics.splice(5,0,...mk([M({l:()=>tt('採購金額','Purchase value'),src:'pur',g:r=>sum(r,x=>(x.qty||0)*(x.price||0)),ty:'money',add:1})]));
+Object.assign(REALCOLS,{
+ orders:[COL('my_no','my_no',{lead:1,mono:1}),COL('od_no','od_no',{mono:1}),COL('po_no','po_no',{mono:1}),COL('cust','customer'),COL('style','style',{mono:1}),COL('style_name','style'),COL('clr','color'),COL('order_date','order_date',{tp:'date'}),COL('delivery','delivery',{tp:'date'}),
+  COL('qty','order_qty',{tp:'num'}),COL('price','price',{tp:'money3'}),COL('fg_qty','fg_qty',{tp:'num'}),COL('ship_qty','ship_qty',{tp:'num'}),COL('closed_date','結案日'),COL('status','status',{tp:'ost'}),COL('source_system','source',{tp:'src'})],
+ accessories:[COL('material_no','material_no',{lead:1,mono:1}),COL('item','item',{wrap:1}),COL('color','color'),COL('color_name','color_name'),COL('size','size'),COL('unit','unit'),COL('balance','balance',{tp:'n2'}),COL('source_system','source',{tp:'src'})]});
+CFG.purchase.cols=[COL('purchase_no','purchase_no',{lead:1,mono:1}),COL('type','type',{tp:'bt'}),COL('supplier','supplier'),COL('purchase_date','採購月'),COL('eta','交貨日期',{tp:'date'}),COL('my_no','my_no',{mono:1}),COL('material','material',{wrap:1}),COL('color','color'),COL('size','size'),
+ COL('qty','qty',{tp:'num'}),COL('unit','unit'),COL('received','received',{tp:'num'}),COL('outstanding','差異／不足量',{tp:'num'}),COL('price','price',{tp:'money3'}),COL('amount','進貨金額',{tp:'money'}),COL('source_system','source',{tp:'src'})];
+CFG.shipping.cols=[COL('bl_no','bl_no',{lead:1,mono:1}),COL('ship_date','ship_date',{tp:'date'}),COL('cust','customer'),COL('od_no','od_no',{mono:1}),COL('my_no','my_no',{mono:1}),COL('po_no','po_no',{mono:1}),COL('style','style',{mono:1}),COL('clr','color'),COL('qty','qty',{tp:'num'}),COL('price','price',{tp:'money3'}),COL('amount','amount',{tp:'money'}),COL('source_system','source',{tp:'src'})];
+CFG.pprice={data:()=>DB.price,date:'purchase_date',title:'purchase_no',cols:[COL('purchase_no','purchase_no',{lead:1,mono:1}),COL('seq','序',{tp:'num'}),COL('purchase_date','date',{tp:'date'}),COL('supplier','supplier'),COL('material_no','material_no',{mono:1}),COL('material','material',{wrap:1}),COL('color','color'),COL('color_en','color_name'),COL('size','size'),COL('qty','qty',{tp:'num'}),COL('unit','unit'),COL('price','price',{tp:'money3'}),COL('unit_price','每個單價',{tp:'money3'}),COL('currency','currency'),COL('eta','eta',{tp:'date'}),COL('my_no','my_no',{mono:1}),COL('source_system','source',{tp:'src'})]};
+CFG.stockmove={data:()=>DB.stockmove,date:null,yearF:'year',title:'name',cols:[COL('year','年'),COL('type','type',{tp:'bt'}),COL('material_no','material_no',{lead:1,mono:1}),COL('name','material',{wrap:1}),COL('color','color'),COL('color_name','color_name'),COL('size','size'),COL('width','width'),COL('unit','unit'),
+ COL('open','上月結存',{tp:'n2'}),COL('in_qty','入庫',{tp:'n2'}),COL('out_qty','出庫',{tp:'n2'}),COL('adj','調整',{tp:'n2'}),COL('close','結存',{tp:'n2'}),COL('source_system','source',{tp:'src'})]};
+CFG.fgstock={data:()=>DB.fgstock,title:'my_no',nodate:1,snap:1,cust:true,cols:[COL('cust','customer',{lead:1}),COL('my_no','my_no',{mono:1}),COL('od_no','od_no',{mono:1}),COL('order_year','訂單年'),COL('style','style',{mono:1}),COL('clr','color'),COL('clr_name','color_name'),COL('size','size'),COL('qty','庫存量',{tp:'num'}),COL('source_system','source',{tp:'src'})]};
+CFG.labor={data:()=>DB.labor,date:'month_date',title:'dept',cols:[COL('month_date','月份（填該月 1 日）',{tp:'date'}),COL('dept','部門／線別'),COL('headcount','人數',{tp:'num'}),COL('work_hours','正常工時',{tp:'num'}),COL('ot_hours','加班工時',{tp:'num'}),COL('dl_cost','直接人工 USD',{tp:'money'}),COL('idl_cost','間接人工 USD',{tp:'money'}),COL('src_note','來源'),COL('source_system','source',{tp:'src'})]};
+DS.labor={l:['人工彙總','Labour summary'],keys:[['month_date','dept']],kw:['headcount','人數','工時','work hours','dl','直接人工','間接人工','idl','部門','line'],fn:['labor','labour','人工'],store:'labor',key:['month_date','dept']};
+Object.assign(FIELD_SYN,{month_date:['month','月份'],dept:['dept','部門','線別','line'],headcount:['headcount','人數'],work_hours:['work hours','正常工時','工時'],ot_hours:['ot hours','加班工時'],dl_cost:['dl','dl cost','直接人工'],idl_cost:['idl','idl cost','間接人工']});
+Object.assign(NEED,{orders:['cod700','cod690'],purchase:['cpu350','cpu340'],pprice:['cpu795'],shipping:['cbl300'],stockmove:['cst541','cst551'],fgstock:['cst302'],labor:['Account Flow / HRA-PAY 每月人工彙總（可用智慧匯入或手動新增）']});
+
+/* ---------- KPI rows for the new pages ---------- */
+function kpisFor6(k,rows){
+ if(!isDemo()){
+  if(k==='purchase')return kpi(tt('採購列','Lines'),fmt(rows.length),'',fmt(uniq(rows,x=>x.purchase_no))+tt(' 張採購單',' POs'))+kpi(tt('採購金額','Ordered value'),money(sum(rows,x=>(x.qty||0)*(x.price||0)),0))+kpi(tt('進貨金額','Received value'),money(sum(rows,'amount'),0),'',tt('= ERP 金額欄','= ERP amount'))+kpi(tt('主料採購','Fabric ordered'),fmt(sum(rows.filter(x=>x.type==='main'&&isYD(x)),'qty')),t('yd'))+kpi(tt('差異／不足量列','Short lines'),fmt(rows.filter(x=>(x.outstanding||0)>0).length),'','',rows.some(x=>(x.outstanding||0)>0)?'warn':'')+kpi(tt('單價為 0','Zero price'),fmt(rows.filter(x=>!x.price).length),'','',rows.some(x=>!x.price)?'warn':'');
+  if(k==='pprice')return kpi(tt('採購列','Lines'),fmt(rows.length))+kpi(tt('採購單','POs'),fmt(uniq(rows,x=>x.purchase_no)))+kpi(tt('廠商','Suppliers'),fmt(uniq(rows,x=>x.supplier)))+kpi(tt('料號','Items'),fmt(uniq(rows,x=>x.material_no)))+kpi(tt('採購金額','Value'),money(sum(rows,x=>(x.qty||0)*(x.price||0)),0));
+  if(k==='stockmove'){const m=rows.filter(x=>x.type==='main'&&isYD(x)),tr=rows.filter(x=>x.type==='trim');return kpi(tt('料號列','Lines'),fmt(rows.length),'',fmt(m.length)+tt(' 主料 / ',' fabric / ')+fmt(tr.length)+tt(' 副料',' trim'))+kpi(tt('主料入庫','Fabric in'),fmt(sum(m,'in_qty')),t('yd'))+kpi(tt('主料出庫','Fabric out'),fmt(sum(m,'out_qty')),t('yd'))+kpi(tt('主料結存','Fabric closing'),fmt(sum(m,'close')),t('yd'))+kpi(tt('結存為負','Negative closing'),fmt(rows.filter(x=>x.close<0).length),'','',rows.some(x=>x.close<0)?'crit':'')}
+  if(k==='fgstock'){const old=rows.filter(x=>x.order_year&&x.order_year<=TODAY.getFullYear()-3);return kpi(tt('筆數','Lines'),fmt(rows.length))+kpi(tt('成品庫存','FG stock'),fmt(sum(rows,'qty')),t('pcs'))+kpi(tt('客戶','Customers'),fmt(uniq(rows,x=>x.cust)))+kpi(tt('3 年以上舊單','3+ years old'),fmt(sum(old,'qty')),t('pcs'),'',old.length?'warn':'')}
+  if(k==='shipping'){const a=rows.filter(x=>x.amount!=null);return kpi(tt('出貨單','Shipments'),fmt(uniq(rows,x=>x.bl_no)))+kpi(t('kpi_shipped'),fmt(sum(rows,'qty')),t('pcs'))+kpi(t('amount'),a.length?money(sum(a,'amount'),0):'—','',a.length<rows.length?tt('有 ','')+fmt(rows.length-a.length)+tt(' 列找不到訂單單價',' rows without order price'):'',a.length<rows.length?'warn':'')+kpi(tt('客戶','Customers'),fmt(uniq(rows,x=>x.cust)))}
+  if(k==='labor')return kpi(tt('人數','Headcount'),fmt(sum(rows,'headcount')))+kpi(tt('工時','Hours'),fmt(sum(rows,'work_hours')+sum(rows,'ot_hours')))+kpi(tt('直接人工','Direct labour'),money(sum(rows,'dl_cost'),0))+kpi(tt('間接人工','Indirect labour'),money(sum(rows,'idl_cost'),0));
+ }
+ return kpisFor(k,rows);
+}
+
+/* ---------- period helpers: data-aware defaults and ● marks ---------- */
+function periodKeys(k){
+ const ck='pk|'+k; if(GC.has(ck))return GC.get(ck); const set=new Set();
+ if(SNAPK[k]){const [ds,sn]=SNAPK[k];Object.keys(DB[sn]||{}).concat(DB.asof&&DB.asof[ds]?[DB.asof[ds]]:[]).forEach(d=>{set.add(d.slice(0,7));set.add(d.slice(0,4))})}
+ else{const P=PM[k]; const srcs=P?[...new Set(P.metrics.filter(m=>m.src).map(m=>m.src))]:[]; const cfg=CFG[k];
+  if(!srcs.length&&cfg&&cfg.date)live(cfg.data()).forEach(r=>{const d=r[cfg.date];if(d){set.add(d.slice(0,7));set.add(d.slice(0,4))}});
+  srcs.forEach(s=>{groupBy(s,'M').forEach((v,key)=>{if(/^Y/.test(key))set.add(key.slice(1));else{set.add(key);set.add(key.slice(0,4))}})})}
+ GC.set(ck,set); return set}
+function latestKey(k){const cm=monthKey(TODAY),cy=String(TODAY.getFullYear());const ks=[...periodKeys(k)].filter(x=>x.length===7&&x<=cm).sort();const ys=[...periodKeys(k)].filter(x=>x.length===4&&x<=cy).sort();if(ks.length&&(!ys.length||ks[ks.length-1].slice(0,4)>=ys[ys.length-1]))return ks[ks.length-1];return ys.length?ys[ys.length-1]:(ks.length?ks[ks.length-1]:null)}
+function initST(k){
+ const saved=LS.get('psjerp_nav6_'+k,null);
+ const st=Object.assign({pt:'M',anchor:ymd(TODAY),view:'list',cmp:'prev',cmpAnchor:null,from:ymd(new Date(TODAY.getFullYear(),TODAY.getMonth(),1)),to:ymd(TODAY),from2:'',to2:'',q:'',page:0,cust:'',onlyDiff:false},saved||{});
+ if(!saved&&!isDemo()){const lk=latestKey(k);if(lk){if(lk.length===7){st.anchor=lk+'-01';}else{st.pt='Y';st.anchor=lk+'-01-01'}}}
+ return st}
+function noDataHint(k){
+ if(isDemo())return ''; const st=S(k); if(st.pt==='ALL'||st.pt==='C')return ''; const R=rangeOf(st); const ks=periodKeys(k); if(!ks.size)return '';
+ const key=st.pt==='Y'?String(R.from.getFullYear()):monthKey(R.from); const has=st.pt==='Y'?ks.has(key):(st.pt==='M'?ks.has(key):ks.has(monthKey(R.from)));
+ if(has)return ''; const lk=latestKey(k); if(!lk)return '';
+ return `<p class="note warn small" style="margin:0 0 10px">${tt('這個期間沒有上傳資料。最近有資料：','No data uploaded for this period. Latest data: ')}<b>${esc(lk)}</b> <button class="btn sm" onclick="${lk.length===7?`S('${k}').pt='M';navSet('${k}','${lk}-01')`:`S('${k}').pt='Y';navSet('${k}','${lk}-01-01')`}">${tt('跳到 ','Go to ')}${esc(lk)}</button></p>`}
+const dot=(on)=>on?'● ':'';
+
+/* ---------- year × dataset coverage matrix ---------- */
+const COVER=[['orders','cod700','W_COD700 訂單總表'],['orders','cod690','W_COD690 訂單統計'],['bom','cod550','W_COD550 BOM'],['purchase','cpu350','W_CPU350 主料採購'],['purchase','cpu340','W_CPU340 副料採購'],['pprice','cpu795','W_CPU795 採購單價'],
+ ['stockmove','cst541','W_CST541 主料進耗存'],['stockmove','cst551','W_CST551 副料進耗存'],['finished-goods','cst580','W_CST580 成品入庫'],['shipping','cbl300','W_CBL300 出貨'],['fabric','stkmain','K01 主料庫存'],['accessories','stktrim','K02 副料庫存'],['fgstock','cst302','K04 成品庫存'],['','cba190','SMV']];
+function coverageMatrixHTML(){
+ const F=DB.erpfiles||[]; const y1=TODAY.getFullYear(); const years=[];for(let y=2014;y<=y1;y++)years.push(y);
+ const cellFor=(rep,y)=>{const fs=F.filter(f=>f.rep===rep&&((f.year&&+f.year===y)||(f.range&&f.range[0]&&+String(f.range[0]).slice(0,4)<=y&&+String(f.range[1]||f.range[0]).slice(0,4)>=y)||(f.asof&&SNAPREP[rep]&&+String(f.asof).slice(0,4)===y)));return fs.length?{n:sum(fs,'rows'),f:fs.length}:null};
+ let h=`<div class="panel mt"><h2>${tt('資料覆蓋表','Data coverage')}</h2><p class="hint">${tt('每一格＝這一年有沒有上傳這種 ERP 報表（數字＝筆數）。空白格就是還缺的檔。','Each cell shows whether that ERP report is uploaded for the year (number = rows). Blank cells are missing files.')}</p><div class="tbl-wrap"><table class="t cover"><thead><tr><th>${tt('報表','Report')}</th>${years.map(y=>`<th class="r">${String(y).slice(2)}</th>`).join('')}</tr></thead><tbody>`;
+ COVER.forEach(([pg,rep,lab])=>{h+=`<tr><td class="lead small">${pg?`<a href="#${pg}">${esc(lab)}</a>`:esc(lab)}</td>${years.map(y=>{if(rep==='cba190'){const f=F.find(x=>x.rep==='cba190');return y===y1?`<td class="r small">${f?'✅ '+fmt(f.rows):'⬜'}</td>`:'<td></td>'}const c=cellFor(rep,y);return `<td class="r small ${c?'ok':'miss'}" title="${c?fmt(c.n)+tt(' 筆',' rows'):tt('沒有','none')}">${c?(c.n>=1000?fmt(c.n/1000,0)+'k':fmt(c.n)):'⬜'}</td>`}).join('')}</tr>`});
+ return h+`</tbody></table></div><p class="small muted" style="margin:6px 0 0">${tt('庫存類（K01／K02／K04）是時點快照，只標在快照日期那一年。','Stock reports (K01/K02/K04) are snapshots, marked in the year of the snapshot date.')}</p></div>`}
+
+/* ---------- "what is missing" card with SOP + drop zone ---------- */
+function needHTML(k){
+ const items=(NEED[k]||[]).map(x=>{const R=REPORTS.find(r=>r.k===x);return R?`<li><b class="mono">${esc(R.fn)}</b> ${esc(LANG===0?R.zh:R.en)} · ${tt('檔名','file')} <span class="mono">${esc(R.file||'—')}</span>${R.sop?` · ${tt('手冊 V4.1 SOP ','Manual V4.1 SOP ')}<b>${esc(R.sop)}</b>`:''}</li>`:`<li>${esc(x)}</li>`});
+ return `<div class="panel empty"><h2>${tt('還沒有真實資料','No real data yet')}</h2><p>${tt('這頁需要下面的 ERP 報表：','This page needs these ERP reports:')}</p><ul class="need-list">${items.join('')}</ul>
+ ${k==='labor'?`<p><button class="btn pri" onclick="S('labor').view='detail';navDone('labor');setTimeout(()=>newRec('labor'),50)">＋ ${tt('手動新增一筆','Add a record')}</button> <span class="small muted">${tt('或匯入會計／HRA-PAY 的月彙總 Excel（第一次選資料集「人工彙總」並存成範本）','or import the monthly summary Excel from accounting / HRA-PAY')}</span></p>`:''}
+ <div class="drop drop-mini" onclick="$('#fileIn').click()" role="button" tabindex="0"><b>📤 ${tt('把檔案拖到畫面任何地方，或點這裡選檔','Drop files anywhere on the page, or tap here')}</b><span class="small muted">${tt('不用先選種類，系統自己辨識','no need to choose a type')}</span></div>${cloudBanner()}</div>`}
+
+/* ---------- multi-file queue: every file gets one row ---------- */
+function tplSig(hdr){return hdr.map(cellS).filter(Boolean).map(s=>s.toLowerCase()).sort().join('|')}
+function tplMatch(aoa){const tpls=DB.tpl||[];if(!tpls.length)return null;for(let i=0;i<Math.min(15,aoa.length);i++){const sig=tplSig(aoa[i]||[]);const t2=tpls.find(t3=>t3.sig===sig);if(t2)return t2}return null}
+async function handleFiles(list){
+ const files=[...list]; if(!files.length)return; toast(tt('讀取中…','Reading…')+' '+files.length);
+ for(const f of files){
+  try{const {aoa,sheets}=await readAOA(f); const R=detectReport(aoa);
+   if(R){const P=PARSERS[R.parser](aoa,f,R.k); const existing=(DB.erpfiles||[]).find(x=>x.key===P.meta.key);
+    IMPQ=IMPQ.filter(q=>!(q.P&&q.P.meta.key===P.meta.key)); IMPQ.push({file:f.name,size:f.size,R,P,existing});}
+   else{const tp=tplMatch(aoa); IMPQ=IMPQ.filter(q=>!(q.generic&&q.file===f.name)); IMPQ.push({file:f.name,generic:f,tpl:tp||null,rows:Math.max(0,aoa.filter(r=>r.some(c=>cellS(c)!=='')).length-1)})}
+  }catch(e){IMPQ.push({file:f.name,err:String(e.message||e)})}
+ }
+ go('smart-import'); rerender();
+}
+function detectReport(aoa){
+ const head=aoa.slice(0,4).map(r=>r.map(cellS).join(' ')).join(' ');
+ const byT=REPORTS.find(r=>r.title&&r.parser&&r.title.test(head)); if(byT)return byT;
+ const rows=aoa.slice(0,15).map(r=>r.map(cellS));
+ return REPORTS.find(r=>r.parser&&((r.hdr&&rows.some(x=>r.hdr.every(h=>x.includes(h))))||(r.hdrFn&&r.hdrFn(rows))))||null}
+async function genericFromQ(i){const q=IMPQ[i];if(!q)return;IMPQ.splice(i,1);await handleFile(q.generic);if(q.tpl&&IMP){IMP.ds=q.tpl.ds;IMP.map={};Object.entries(q.tpl.map).forEach(([f,h])=>{const j=IMP.hdr.map(cellS).indexOf(h);if(j>=0)IMP.map[f]=j});IMP.tplName=q.tpl.name;analyse();rerender()}}
+function saveTpl(){if(!IMP)return;const name=(prompt(tt('範本名稱（例：會計 WIP 月報）','Template name'),IMP.file.replace(/\.[^.]+$/,'').replace(/\d{4,}/g,''))||'').trim();if(!name)return;
+ const map={};Object.entries(IMP.map).forEach(([f,i])=>map[f]=cellS(IMP.hdr[i]));const tp={name,sig:tplSig(IMP.hdr),ds:IMP.ds,map,at:nowStamp(),dirty:true};
+ DB.tpl=(DB.tpl||[]).filter(x=>x.sig!==tp.sig).concat([tp]);persist();toast(tt('已存成範本：下次同類檔案會自動套用','Template saved'));if(cloudReady())setTimeout(()=>cloudSync(false),200);rerender()}
+function erpQueueHTML(){
+ if(!IMPQ.length)return '';
+ const pend=IMPQ.filter(q=>q.P&&!q.done&&!q.skip).length;
+ let h=`<div class="panel mt"><h2>${tt('匯入佇列','Import queue')} · ${fmt(IMPQ.length)} ${tt('個檔','files')}</h2><p class="hint">${tt('每個檔一列，一個都不會漏。ERP 報表依標題或欄名自動辨識，逐筆加總後與報表合計核對；核對失敗（❌）預設不勾選。同範圍重匯＝取代，不重複。','One row per file — nothing is dropped. ERP reports are recognised by title or headers and checked against the report total; failed checks (❌) are unticked by default. Re-importing the same scope replaces it.')}</p>
+ <div class="tbl-wrap"><table class="t cards"><thead><tr><th></th><th>${tt('檔案','File')}</th><th>${tt('報表','Report')}</th><th>${tt('範圍','Scope')}</th><th class="r">${tt('筆數','Rows')}</th><th>${tt('核對','Checks')}</th><th>${esc(t('status'))}</th><th></th></tr></thead><tbody>`;
+ IMPQ.forEach((q,i)=>{
+  if(q.err){h+=`<tr><td></td><td class="lead mono" data-l="">${esc(q.file)}</td><td colspan="5" data-l="">${stChip('crit',tt('讀取失敗','Failed'))} <span class="small">${esc(q.err)}</span></td><td data-l=""><button class="btn sm" onclick="dropQ(${i})">✕</button></td></tr>`;return}
+  if(q.generic){h+=`<tr><td></td><td class="lead mono" data-l="">${esc(q.file)}</td><td colspan="5" data-l="">${q.tpl?stChip('info',tt('範本：','Template: ')+q.tpl.name)+` <span class="small muted">→ ${esc(DS[q.tpl.ds]?DS[q.tpl.ds].l[LANG===0?0:1]:q.tpl.ds)}</span>`:stChip('warn',tt('不是已知 ERP 報表','Not a known ERP report'))+` <span class="small muted">${tt('約 ','about ')}${fmt(q.rows)}${tt(' 列；按右邊選資料集、對欄位，可存成範本',' rows; choose the dataset and map columns, then save as a template')}</span>`}</td><td data-l=""><button class="btn sm ${q.tpl?'pri':''}" onclick="genericFromQ(${i})">${q.tpl?tt('套用範本','Apply'):tt('選資料集','Choose dataset')}</button></td></tr>`;return}
+  const P=q.P, T2=P.meta.totals||{}; const bad=P.checks.some(c=>c.ok===false); if(q.skip==null)q.skip=bad;
+  const tot=[T2.qty!=null?fmt(T2.qty)+' '+tt('件／量','qty'):'',T2.amount!=null?money(T2.amount,2):'',T2.bal!=null?fmt(T2.bal,2):'',T2.close!=null?tt('結存 ','closing ')+fmt(T2.close,2):''].filter(Boolean).join('<br>');
+  h+=`<tr><td data-l="">${q.done?'':`<input type="checkbox" ${q.skip?'':'checked'} onchange="IMPQ[${i}].skip=!this.checked;rerender()" aria-label="${tt('匯入','Import')}">`}</td><td class="lead mono" data-l="">${esc(q.file)}</td><td data-l="${tt('報表','Report')}"><b>${esc(q.R.fn)}</b><br><span class="small">${esc(LANG===0?q.R.zh:q.R.en)}</span></td><td data-l="${tt('範圍','Scope')}" class="wrap">${esc(P.meta.label)}${P.meta.dataRange&&P.meta.dataRange[0]?`<br><span class="small muted">${tt('實際資料','data')} ${esc(P.meta.dataRange[0])} ～ ${esc(P.meta.dataRange[1])}</span>`:''}</td>
+   <td class="r" data-l="${tt('筆數','Rows')}">${fmt(P.rows.length)}${tot?`<br><span class="small muted">${tot}</span>`:''}</td>
+   <td class="wrap small" data-l="${tt('核對','Checks')}">${P.checks.map(c=>`<div>${c.ok===true?'✅':c.ok===false?'❌':'⚠️'} ${esc(c.msg)}</div>`).join('')}</td>
+   <td data-l="${esc(t('status'))}">${q.done?stChip('good',tt('已匯入','Imported')+` +${fmt(q.done.added)}`+(q.done.removed?` / ${tt('取代','replaced')} ${fmt(q.done.removed)}`:'')):q.skip?stChip('neu',tt('不匯入','Skipped')):q.existing?stChip('warn',tt('將取代舊資料','Will replace')+' '+fmt(q.existing.rows)):stChip('info',tt('新資料','New'))}</td>
+   <td data-l="">${q.done?`<a class="btn sm" href="#${pageOfRep(q.R.k)}">${tt('看資料','Open')} →</a>`:`<button class="btn sm" onclick="dropQ(${i})">✕</button>`}</td></tr>`;
+ });
+ const sel=IMPQ.filter(q=>q.P&&!q.done&&!q.skip).length;
+ h+=`</tbody></table></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap">${pend?`<button class="btn" onclick="IMPQ=[];rerender()">${esc(t('cancel'))}</button><button class="btn pri" ${sel?'':'disabled'} onclick="confirmERPAll()">${tt('確認匯入','Confirm import')} (${sel})</button>`:`<button class="btn" onclick="IMPQ=[];rerender()">${tt('清除清單','Clear list')}</button>`}</div>
+ <p class="small muted" style="margin:8px 0 0">${tt('只寫入 PSJERP 雲端資料；不寫回 clothes.exe。','Writes to PSJERP cloud data only; never back to clothes.exe.')}</p></div>`;
+ return h;
+}
+function pageOfRep(rep){return {cod700:'orders',cod690:'orders',cod550:'bom',cst580:'finished-goods',stkmain:'fabric',stktrim:'accessories',cpu795:'pprice',cbl300:'shipping',cba190:'costing',cst302:'fgstock',cpu350:'purchase',cpu340:'purchase',cst541:'stockmove',cst551:'stockmove'}[rep]||'dashboard'}
+function confirmERPAll(){
+ const done=[]; IMPQ.filter(q=>q.P&&!q.done&&!q.skip).forEach(q=>{const r=applyERP(q.P,q.file);q.done=r;done.push(q)});
+ COSTC.clear(); GC.clear(); toast(tt('已匯入 ','Imported ')+done.length+tt(' 個檔','files'));
+ GC.clear(); [...new Set(done.map(q=>pageOfRep(q.R.k)))].forEach(pg=>{if(SNAPK[pg])return;const lk=latestKey(pg);if(!lk)return;const st=S(pg);if(lk.length===7){st.pt='M';st.anchor=lk+'-01';if(st.view==='detail'||st.view==='trend')st.view='list'}else{st.pt='Y';st.anchor=lk+'-01-01'}saveNav(pg)});
+ rerender(); if(cloudReady())setTimeout(()=>cloudSync(false),300);
+}
+
+/* ---------- export: Excel with 說明 + 資料 sheets (current period + filters) ---------- */
+function exportCSV(k){
+ const cfg=CFG[k]; const rows=filterRows(k); const st=S(k); const R=rangeOf(st); const per=cfg.snap?'As of '+ymd(asOfDate(R)):periodLabel(st.pt,R);
+ const stamp=nowStamp().replace(/[-: ]/g,'').slice(0,12); const name=`VRT_${t(k)}_${per.replace(/[^\w\-]/g,'')}_${stamp.slice(0,8)}-${stamp.slice(8,12)}`.replace(/[\/\\ ]/g,'');
+ const cols=cfg.cols.filter(c=>c.tp!=='src'); const head=cols.map(c=>t(c.l)).concat(['source_file']);
+ const isTxt=c=>/^(my_no|od_no|po_no|purchase_no|material_no|bl_no|style|color|clr|clr_no|size)$/.test(c.f);
+ const data=rows.map(r=>cols.map(c=>{const v=r[c.f];if(v==null||v==='')return '';if(isTxt(c))return String(v);if(isNumCol(c))return +v||0;return v}).concat([r.source_file||'']));
+ const files=[...new Set(rows.map(r=>r.source_file).filter(Boolean))];
+ const tots=cols.map((c,i)=>isNumCol(c)&&!/price|pct|smv/.test(c.tp+c.f)?sum(data,r=>+r[i]||0):null);
+ const info=[['VRT ERP · '+t(k)],['匯出時間',nowStamp()],['期間',per],['客戶篩選',st.cust||'全部'],['關鍵字',st.q||'—'],['筆數',rows.length],['來源檔',files.slice(0,30).join(', ')+(files.length>30?' …':'')],[''],['欄位','合計']].concat(cols.map((c,i)=>[t(c.l),tots[i]==null?'':tots[i]]).filter(x=>x[1]!==''));
+ audit('export',name,'EXPORT',null,{rows:rows.length,period:per});
+ if(!window.XLSX){showCSV(name+'.csv',[head].concat(data));return}
+ try{const wb=XLSX.utils.book_new();const s1=XLSX.utils.aoa_to_sheet(info);s1['!cols']=[{wch:14},{wch:60}];XLSX.utils.book_append_sheet(wb,s1,'說明');
+  const s2=XLSX.utils.aoa_to_sheet([head].concat(data));s2['!cols']=head.map(h=>({wch:Math.max(8,Math.min(30,String(h).length*2+2))}));s2['!autofilter']={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:data.length,c:head.length-1}})};s2['!freeze']={xSplit:0,ySplit:1};
+  // keep identifiers as text
+  cols.forEach((c,ci)=>{if(!isTxt(c))return;for(let ri=1;ri<=data.length;ri++){const a=XLSX.utils.encode_cell({r:ri,c:ci});if(s2[a]){s2[a].t='s';s2[a].z='@'}}});
+  XLSX.utils.book_append_sheet(wb,s2,'資料');XLSX.writeFile(wb,name+'.xlsx');toast(tt('已匯出 ','Exported ')+fmt(rows.length)+tt(' 筆',' rows'))}
+ catch(e){console.error(e);showCSV(name+'.csv',[head].concat(data))}
+}
+
+/* ---------- global drag & drop: any page ---------- */
+(function(){
+ let depth=0; const ov=document.createElement('div'); ov.id='dropOv'; ov.className='drop-ov'; ov.hidden=true; ov.innerHTML=`<div><b>📥 ${tt('放開即可匯入','Release to import')}</b><span>${tt('系統會自己辨識是哪一種 ERP 報表','The system recognises each ERP report')}</span></div>`; document.body.appendChild(ov);
+ const hasFiles=e=>e.dataTransfer&&[...(e.dataTransfer.types||[])].includes('Files');
+ document.addEventListener('dragenter',e=>{if(!hasFiles(e))return;e.preventDefault();depth++;ov.hidden=false});
+ document.addEventListener('dragover',e=>{if(!hasFiles(e))return;e.preventDefault()});
+ document.addEventListener('dragleave',e=>{if(!hasFiles(e))return;depth=Math.max(0,depth-1);if(!depth)ov.hidden=true});
+ document.addEventListener('drop',e=>{if(!hasFiles(e))return;e.preventDefault();depth=0;ov.hidden=true;const fs=e.dataTransfer.files;if(fs&&fs.length)handleFiles(fs)});
+ const st=document.createElement('style'); st.textContent=`.drop-ov{position:fixed;inset:0;z-index:90;background:rgba(31,78,121,.72);display:flex;align-items:center;justify-content:center;pointer-events:none}.drop-ov>div{background:#fff;border:3px dashed #2E75B6;border-radius:16px;padding:28px 36px;display:flex;flex-direction:column;gap:6px;align-items:center;font-size:20px;color:#1F4E79}.drop-ov span{font-size:14px;color:#555}
+ table.cover td.ok{background:#E2F0D9}table.cover td.miss{color:#bbb}table.cover th,table.cover td{padding:4px 6px}.need-list{margin:6px 0 12px 18px;line-height:1.8}.drop-mini{margin:8px 0}`; document.head.appendChild(st);
+ const pl=document.getElementById('prodLinks'); if(pl){const a=document.createElement('a');a.href='https://saintdou-weng.github.io/ac-hra-portal/';a.target='_blank';a.rel='noopener';a.innerHTML='👥 <span data-i="hra_link"></span> ↗';pl.appendChild(a)}
+})();
+
+async function syncTpl(man){
+ const cloud=(man&&man.tpls)||[]; DB.tpl=DB.tpl||[];
+ for(const t2 of DB.tpl.filter(x=>x.dirty)){await cpost({action:'erp_tpl',tpl:{name:t2.name,sig:t2.sig,ds:t2.ds,map:JSON.stringify(t2.map),at:t2.at}});t2.dirty=false}
+ cloud.forEach(c=>{if(!DB.tpl.some(x=>x.sig===c.sig))DB.tpl.push({name:c.name,sig:c.sig,ds:c.ds,map:PJ(c.map)||{},at:c.at,dirty:false})});
+}
+
 init();
 </script></body></html>
